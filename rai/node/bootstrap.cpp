@@ -279,7 +279,8 @@ void rai::frontier_req_client::run ()
 	}
 	auto this_l (shared_from_this ());
 	connection->start_timeout ();
-	boost::asio::async_write (connection->socket, boost::asio::buffer (send_buffer->data (), send_buffer->size ()), [this_l, send_buffer](boost::system::error_code const & ec, size_t size_a) {
+	boost::asio::async_write (connection->socket, boost::asio::buffer (send_buffer->data (), send_buffer->size ()), 
+			[this_l, send_buffer](boost::system::error_code const & ec, size_t size_a) {
 		this_l->connection->stop_timeout ();
 		if (!ec)
 		{
@@ -379,9 +380,9 @@ void rai::frontier_req_client::received_frontier (boost::system::error_code cons
 		{
 			BOOST_LOG (connection->node->log) << boost::str (boost::format ("Received %1% frontiers from %2%") % std::to_string (count) % connection->socket.remote_endpoint ());
 		}
-		if (!account.is_zero ())
+		if (!account.is_zero ()) //有需要接收的继续接收，
 		{
-			while (!current.is_zero () && current < account)
+			while (!current.is_zero () && current < account) //这个判断条件懵逼
 			{
 				// We know about an account they don't.
 				rai::transaction transaction (connection->node->store.environment, nullptr, true);
@@ -446,12 +447,12 @@ void rai::frontier_req_client::received_frontier (boost::system::error_code cons
 			{
 				try
 				{
-					promise.set_value (false);
+					promise.set_value (false);//没有需要接收的就通知其他线程，同步完毕
 				}
 				catch (std::future_error &)
 				{
 				}
-				connection->attempt->pool_connection (connection);
+				connection->attempt->pool_connection (connection); //唤醒其他线程
 			}
 		}
 	}
@@ -829,7 +830,7 @@ total_blocks (0),
 stopped (false)
 {
 	BOOST_LOG (node->log) << "Starting bootstrap attempt";
-	node->bootstrap_initiator.notify_listeners (true);
+	node->bootstrap_initiator.notify_listeners (true);   //fixme
 }
 
 rai::bootstrap_attempt::~bootstrap_attempt ()
@@ -1142,7 +1143,8 @@ void rai::bootstrap_attempt::populate_connections ()
 	if (node->config.logging.bulk_pull_logging ())
 	{
 		std::unique_lock<std::mutex> lock (mutex);
-		BOOST_LOG (node->log) << boost::str (boost::format ("Bulk pull connections: %1%, rate: %2% blocks/sec, remaining account pulls: %3%, total blocks: %4%") % connections.load () % (int)rate_sum % pulls.size () % (int)total_blocks.load ());
+		BOOST_LOG (node->log) << boost::str 
+			(boost::format ("Bulk pull connections: %1%, rate: %2% blocks/sec, remaining account pulls: %3%, total blocks: %4%") % connections.load () % (int)rate_sum % pulls.size () % (int)total_blocks.load ());
 	}
 
 	if (connections < target)
@@ -1153,6 +1155,8 @@ void rai::bootstrap_attempt::populate_connections ()
 		for (int i = 0; i < delta; i++)
 		{
 			auto peer (node->peers.bootstrap_peer ());
+
+			BOOST_LOG (node->log) << boost::str (boost::format ("peers.bootstrap_peer:%1%")%node->peers.bootstrap_peer ());
 			if (peer != rai::endpoint (boost::asio::ip::address_v6::any (), 0))
 			{
 				auto client (std::make_shared<rai::bootstrap_client> (node, shared_from_this (), rai::tcp_endpoint (peer.address (), peer.port ())));
