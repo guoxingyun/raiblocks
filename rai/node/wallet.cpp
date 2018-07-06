@@ -869,7 +869,8 @@ std::shared_ptr<rai::block> rai::wallet::receive_action (rai::block const & send
 						assert (rep_block != nullptr);
 						if (should_generate_state_block (transaction, info.head))
 						{
-							block.reset (new rai::state_block (account, info.head, rep_block->representative (), info.balance.number () + pending_info.amount.number (), hash, prv, account, cached_work));
+							block.reset (new rai::state_block (account, info.head, 
+							rep_block->representative (), info.balance.number () + pending_info.amount.number (), hash, prv, account, cached_work));
 						}
 						else
 						{
@@ -1383,7 +1384,8 @@ thread ([this]() { do_wallet_actions (); })
 		assert (status == 0);
 		std::string beginning (rai::uint256_union (0).to_string ());
 		std::string end ((rai::uint256_union (rai::uint256_t (0) - rai::uint256_t (1))).to_string ());
-		for (rai::store_iterator i (transaction, handle, rai::mdb_val (beginning.size (), const_cast<char *> (beginning.c_str ()))), n (transaction, handle, rai::mdb_val (end.size (), const_cast<char *> (end.c_str ()))); i != n; ++i)
+		for (rai::store_iterator i (transaction, handle, rai::mdb_val (beginning.size (),//这个N是什么玩意语法
+		const_cast<char *> (beginning.c_str ()))), n (transaction, handle, rai::mdb_val (end.size (), const_cast<char *> (end.c_str ()))); i != n; ++i)
 		{
 			rai::uint256_union id;
 			std::string text (reinterpret_cast<char const *> (i->first.data ()), i->first.size ());

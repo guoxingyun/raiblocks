@@ -1,7 +1,6 @@
 #include <rai/blockstore.hpp>
 #include <rai/ledger.hpp>
 #include <rai/node/common.hpp>
-
 namespace
 {
 /**
@@ -191,8 +190,9 @@ void ledger_processor::state_block_impl (rai::state_block const & block_a)
 	{
 		result.code = validate_message (block_a.hashables.account, hash, block_a.signature) ? rai::process_result::bad_signature : rai::process_result::progress; // Is this block signed correctly (Unambiguous)
 		if (result.code == rai::process_result::progress)
-		{
-			result.code = block_a.hashables.account.is_zero () ? rai::process_result::opened_burn_account : rai::process_result::progress; // Is this for the burn account? (Unambiguous)
+		{//销毁账号即使破解出来密钥也无法打块
+			result.code = block_a.hashables.account.is_zero () ? rai::process_result::opened_burn_account : rai::process_result::progress; 
+			// Is this for the burn account? (Unambiguous)
 			if (result.code == rai::process_result::progress)
 			{
 				rai::account_info info;
@@ -255,7 +255,7 @@ void ledger_processor::state_block_impl (rai::state_block const & block_a)
 
 					if (!info.rep_block.is_zero ())
 					{
-						// Move existing representation
+						// Move existing representation  本账户代表的投票权重减少，发送方的代表投票权重增加
 						ledger.store.representation_add (transaction, info.rep_block, 0 - info.balance.number ());
 					}
 					// Add in amount delta
@@ -268,7 +268,7 @@ void ledger_processor::state_block_impl (rai::state_block const & block_a)
 						ledger.store.pending_put (transaction, key, info);
 					}
 					else if (!block_a.hashables.link.is_zero ())
-					{
+					{//fixme,这里为什么要删除
 						ledger.store.pending_del (transaction, rai::pending_key (block_a.hashables.account, block_a.hashables.link));
 					}
 
@@ -278,6 +278,7 @@ void ledger_processor::state_block_impl (rai::state_block const & block_a)
 						ledger.store.frontier_del (transaction, info.head);
 					}
 					// Frontier table is unnecessary for state blocks and this also prevents old blocks from being inserted on top of state blocks
+					// 状态块不需要边界表，这也防止旧的块插入到状态块的顶部?????
 					result.account = block_a.hashables.account;
 				}
 			}
@@ -796,12 +797,17 @@ void rai::ledger::dump_account_chain (rai::account const & account_a)
 
 bool rai::ledger::state_block_parsing_enabled (MDB_txn * transaction_a)
 {
-	return store.block_exists (transaction_a, state_block_parse_canary);
+	//BOOST_LOG (node.log) << boost::str (boost::format("gggggggis -%1%-")% store.block_exists (transaction_a, state_block_parse_canary));
+//	return store.block_exists (transaction_a, state_block_parse_canary);
+	return true;
 }
 
 bool rai::ledger::state_block_generation_enabled (MDB_txn * transaction_a)
 {
-	return state_block_parsing_enabled (transaction_a) && store.block_exists (transaction_a, state_block_generate_canary);
+
+//	BOOST_LOG (node.log) << boost::str (boost::format("xxxxxxxxxxis -%1%-")% store.block_exists (transaction_a, state_block_generate_canary));
+	//return state_block_parsing_enabled (transaction_a) && store.block_exists (transaction_a, state_block_generate_canary);
+	return true;
 }
 
 void rai::ledger::checksum_update (MDB_txn * transaction_a, rai::block_hash const & hash_a)

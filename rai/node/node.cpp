@@ -837,8 +837,8 @@ state_block_generate_canary (0)
 			preconfigured_peers.push_back ("rai.fuckqq.one");
 			preconfigured_representatives.push_back (rai::account ("64D9B47D1DD1282F844937875C07D18EA278F5410E8B9AA6DFE1499DC61BF0AA"));
 			preconfigured_representatives.push_back (rai::account ("11418A9E89743722114EDCCAC2BBD3ED99E656E912920E58CD51AFB75B6D0EF8"));
-			state_block_parse_canary = rai::block_hash ("89F1C0AC4C5AD23964AB880571E3EA67FDC41BD11AB20E67F0A29CF94CD4E24A");
-			state_block_generate_canary = rai::block_hash ("B6DC4D64801BEC7D81DAA086A5733D251E8CBA0E9226FD6173D97C0569EC2998");
+			state_block_parse_canary = rai::block_hash ("526AED18369307EA9B05C13105A53B8B5C74E99ADF525FC7B692FB22F93C3FC1");
+			state_block_generate_canary = rai::block_hash ("F3B56CEB49F362B86C85AF58A62E7AD3A227E5123E01745F3BF82AE930911E20");
 			break;
 		default:
 			assert (false);
