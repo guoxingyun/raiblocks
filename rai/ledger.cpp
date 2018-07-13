@@ -216,7 +216,7 @@ void ledger_processor::state_block_impl (rai::state_block const & block_a)
 				}
 				else
 				{
-					// Account does not yet exists
+					// Account does not yet exists------------OPEM
 					result.code = block_a.previous ().is_zero () ? rai::process_result::progress : rai::process_result::gap_previous; // Does the first block in an account yield 0 for previous() ? (Unambigious)
 					if (result.code == rai::process_result::progress)
 					{
@@ -255,20 +255,20 @@ void ledger_processor::state_block_impl (rai::state_block const & block_a)
 
 					if (!info.rep_block.is_zero ())
 					{
-						// Move existing representation  本账户代表的投票权重减少，发送方的代表投票权重增加
+						// Move existing representation  本账户代表的投票权重减少，发送方的代表投票权重增加,子类型为change
 						ledger.store.representation_add (transaction, info.rep_block, 0 - info.balance.number ());
 					}
 					// Add in amount delta
 					ledger.store.representation_add (transaction, hash, block_a.hashables.balance.number ());
 
-					if (is_send)
+					if (is_send)//子类型为发送
 					{
 						rai::pending_key key (block_a.hashables.link, hash);
 						rai::pending_info info (block_a.hashables.account, result.amount.number ());
 						ledger.store.pending_put (transaction, key, info);
 					}
 					else if (!block_a.hashables.link.is_zero ())
-					{//fixme,这里为什么要删除
+					{//子类型为接收，删除未接收记录
 						ledger.store.pending_del (transaction, rai::pending_key (block_a.hashables.account, block_a.hashables.link));
 					}
 

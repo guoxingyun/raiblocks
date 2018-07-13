@@ -338,7 +338,7 @@ public:
 	{
 	}
 	virtual ~network_message_visitor () = default;
-	void keepalive (rai::keepalive const & message_a) override
+	void keepalive (rai::keepalive const & message_a) override //心跳
 	{
 		if (node.config.logging.network_keepalive_logging ())
 		{
@@ -348,7 +348,7 @@ public:
 		node.peers.contacted (sender, message_a.version_using);
 		node.network.merge_peers (message_a.peers);
 	}
-	void publish (rai::publish const & message_a) override
+	void publish (rai::publish const & message_a) override//接收消息
 	{
 		if (node.config.logging.network_message_logging ())
 		{
@@ -359,7 +359,7 @@ public:
 		node.peers.insert (sender, message_a.version_using);
 		node.process_active (message_a.block);
 	}
-	void confirm_req (rai::confirm_req const & message_a) override
+	void confirm_req (rai::confirm_req const & message_a) override//双花投票结果确认？
 	{
 		if (node.config.logging.network_message_logging ())
 		{
@@ -376,7 +376,7 @@ public:
 			confirm_block (transaction_a, node, sender, std::move (successor));
 		}
 	}
-	void confirm_ack (rai::confirm_ack const & message_a) override
+	void confirm_ack (rai::confirm_ack const & message_a) override//广播？？？
 	{
 		if (node.config.logging.network_message_logging ())
 		{
@@ -1268,7 +1268,7 @@ void rai::block_processor::process_receive_many (std::unique_lock<std::mutex> & 
 			}
 			lock_a.unlock ();
 			auto hash (block->hash ());
-			if (force)
+			if (force) //投票回滚
 			{
 				auto successor (node.ledger.successor (transaction, block->root ()));
 				if (successor != nullptr && successor->hash () != hash)
@@ -3119,7 +3119,7 @@ void rai::active_transactions::announce_votes ()
 		size_t announcements (0);
 		auto i (roots.begin ());
 		auto n (roots.end ());
-		// Announce our decision for up to `announcements_per_interval' conflicts
+		// Announce our decision for up to `announcements_per_interval' conflict,//宣布投票结果s
 		for (; i != n && announcements < announcements_per_interval; ++i)
 		{
 			auto election_l (i->election);
