@@ -510,6 +510,7 @@ void rai::bulk_pull_client::request ()
 	rai::bulk_pull req;
 	req.start = pull.account;
 	req.end = pull.end;
+	 std::cout << "gxy6666" <<std::endl;
 	auto buffer (std::make_shared<std::vector<uint8_t>> ());
 	{
 		rai::vectorstream stream (*buffer);
@@ -517,20 +518,24 @@ void rai::bulk_pull_client::request ()
 	}
 	if (connection->node->config.logging.bulk_pull_logging ())
 	{
+		 std::cout << "gxy7777" <<std::endl;
 		std::unique_lock<std::mutex> lock (connection->attempt->mutex);
 		BOOST_LOG (connection->node->log) << boost::str (boost::format ("Requesting account %1% from %2%. %3% accounts in queue") % req.start.to_account () % connection->endpoint % connection->attempt->pulls.size ());
 	}
 	else if (connection->node->config.logging.network_logging () && connection->attempt->should_log ())
 	{
+		 std::cout << "gxy8888" <<std::endl;
 		std::unique_lock<std::mutex> lock (connection->attempt->mutex);
 		BOOST_LOG (connection->node->log) << boost::str (boost::format ("%1% accounts in pull queue") % connection->attempt->pulls.size ());
 	}
 	auto this_l (shared_from_this ());
 	connection->start_timeout ();
-	boost::asio::async_write (connection->socket, boost::asio::buffer (buffer->data (), buffer->size ()), [this_l, buffer](boost::system::error_code const & ec, size_t size_a) {
+	boost::asio::async_write (connection->socket, boost::asio::buffer (buffer->data (), buffer->size ()), 
+			[this_l, buffer](boost::system::error_code const & ec, size_t size_a) {
 		this_l->connection->stop_timeout ();
 		if (!ec)
 		{
+		std::cout << "gxy0000:buff_size" << buffer->size () << std::endl;
 			this_l->receive_block ();
 		}
 		else
@@ -545,9 +550,11 @@ void rai::bulk_pull_client::request ()
 
 void rai::bulk_pull_client::receive_block ()
 {
+	 std::cout << "gxycccccccccccccc" <<std::endl;
 	auto this_l (shared_from_this ());
 	connection->start_timeout ();
-	boost::asio::async_read (connection->socket, boost::asio::buffer (connection->receive_buffer.data (), 1), [this_l](boost::system::error_code const & ec, size_t size_a) {
+	boost::asio::async_read (connection->socket, boost::asio::buffer (connection->receive_buffer.data (), 1), 
+			[this_l](boost::system::error_code const & ec, size_t size_a) {
 		this_l->connection->stop_timeout ();
 		if (!ec)
 		{
@@ -565,6 +572,7 @@ void rai::bulk_pull_client::receive_block ()
 
 void rai::bulk_pull_client::received_type ()
 {
+	 std::cout << "gxydddd" <<std::endl;
 	auto this_l (shared_from_this ());
 	rai::block_type type (static_cast<rai::block_type> (connection->receive_buffer[0]));
 	switch (type)
@@ -636,12 +644,16 @@ void rai::bulk_pull_client::received_type ()
 
 void rai::bulk_pull_client::received_block (boost::system::error_code const & ec, size_t size_a)
 {
+	 std::cout << "gxyeeee" <<std::endl;
 	if (!ec)
 	{
+	 std::cout << "gxyffff" <<std::endl;
 		rai::bufferstream stream (connection->receive_buffer.data (), 1 + size_a);
 		std::shared_ptr<rai::block> block (rai::deserialize_block (stream));
 		if (block != nullptr && !rai::work_validate (*block))
 		{
+
+	 std::cout << "gxygggg" <<std::endl;
 			auto hash (block->hash ());
 			if (connection->node->config.logging.bulk_pull_logging ())
 			{
@@ -661,6 +673,8 @@ void rai::bulk_pull_client::received_block (boost::system::error_code const & ec
 			connection->attempt->node->block_processor.add (block);
 			if (!connection->hard_stop.load ())
 			{
+
+	 std::cout << "gxyhhhh" <<std::endl;
 				receive_block ();
 			}
 		}
@@ -674,6 +688,7 @@ void rai::bulk_pull_client::received_block (boost::system::error_code const & ec
 	}
 	else
 	{
+	 std::cout << "gxyiiiii" <<std::endl;
 		if (connection->node->config.logging.bulk_pull_logging ())
 		{
 			BOOST_LOG (connection->node->log) << boost::str (boost::format ("Error bulk receiving block: %1%") % ec.message ());
@@ -889,9 +904,11 @@ bool rai::bootstrap_attempt::request_frontier (std::unique_lock<std::mutex> & lo
 
 void rai::bootstrap_attempt::request_pull (std::unique_lock<std::mutex> & lock_a)
 {
+	std::cout << "gxyaaa" <<std::endl;
 	auto connection_l (connection (lock_a));
 	if (connection_l)
 	{
+	std::cout << "gxybbb" <<std::endl;
 		auto pull (pulls.front ());
 		pulls.pop_front ();
 		auto size (pulls.size ());
@@ -934,15 +951,19 @@ bool rai::bootstrap_attempt::request_push (std::unique_lock<std::mutex> & lock_a
 
 bool rai::bootstrap_attempt::still_pulling ()
 {
+	std::cout << "gxy9999" <<std::endl;
 	assert (!mutex.try_lock ());
+	std::cout << "gxy5555" <<std::endl;
 	auto running (!stopped);
 	auto more_pulls (!pulls.empty ());
 	auto still_pulling (pulling > 0);
+	std::cout << "gxy444" <<std::endl;
 	return running && (more_pulls || still_pulling);
 }
 
 void rai::bootstrap_attempt::run ()
 {
+	std::cout << "gxy1111" <<std::endl;
 	populate_connections ();
 	std::unique_lock<std::mutex> lock (mutex);
 	auto frontier_failure (true);
@@ -958,8 +979,10 @@ void rai::bootstrap_attempt::run ()
 	}
 	while (still_pulling ())
 	{
+	std::cout << "gxy222" <<std::endl;
 		while (still_pulling ())
 		{
+	std::cout << "gxy333" <<std::endl;
 			if (!pulls.empty ())
 			{
 				request_pull (lock);

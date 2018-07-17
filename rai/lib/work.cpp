@@ -2,6 +2,7 @@
 
 #include <rai/lib/blocks.hpp>
 #include <rai/node/xorshift.hpp>
+//#include <iostream>
 
 #include <future>
 
@@ -12,7 +13,20 @@ bool rai::work_validate (rai::block_hash const & root_a, uint64_t work_a)
 
 bool rai::work_validate (rai::block const & block_a)
 {
-	return work_validate (block_a.root (), block_a.block_work ());
+	 bool result = work_validate (block_a.root (), block_a.block_work ());
+		 if(result){
+		std::cout<<"gxy"<< rai::work_value (block_a.root (), block_a.block_work ()) \
+		        << "publish_threshold:" << rai::work_pool::publish_threshold << std::endl;
+	//	std::cout<<"gxy"<< rai::work_value (block_a.root (), block_a.block_work ()) \
+		        << "publish_threshold:" << rai::work_pool::publish_threshold << std::endl;
+	    std::cout <<"work:"<<block_a.block_work ()<<std::endl;
+			 std::cout<<"hash"<<block_a.previous().number() <<std::endl;
+		 }
+		 else{
+			 std::cout<<"ssssss"<<std::endl;
+		 }
+
+	return result;
 }
 
 uint64_t rai::work_value (rai::block_hash const & root_a, uint64_t work_a)
