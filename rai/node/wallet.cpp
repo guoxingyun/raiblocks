@@ -983,6 +983,7 @@ std::shared_ptr<rai::block> rai::wallet::change_action (rai::account const & sou
 
 std::shared_ptr<rai::block> rai::wallet::send_action (rai::account const & source_a, rai::account const & account_a, rai::uint128_t const & amount_a, bool generate_work_a, boost::optional<std::string> id_a)
 {
+					BOOST_LOG (node.log) << "sendaction11111112211111111";
 	std::shared_ptr<rai::block> block;
 	boost::optional<rai::mdb_val> id_mdb_val;
 	if (id_a)
@@ -1040,6 +1041,8 @@ std::shared_ptr<rai::block> rai::wallet::send_action (rai::account const & sourc
 						{
 							block.reset (new rai::send_block (info.head, account_a, balance - amount_a, prv, source_a, cached_work));
 						}
+
+					BOOST_LOG (node.log) << "sendactioaaaaaaaaa";
 						if (id_mdb_val)
 						{
 							auto status (mdb_put (transaction, node.wallets.send_action_ids, *id_mdb_val, rai::mdb_val (block->hash ()), 0));
@@ -1060,9 +1063,14 @@ std::shared_ptr<rai::block> rai::wallet::send_action (rai::account const & sourc
 		{
 			node.generate_work (*block);
 		}
+					BOOST_LOG (node.log) << "sendaction22222";
 		node.block_arrival.add (block->hash ());
+
+					BOOST_LOG (node.log) << "sendaction333333333333";
 		node.block_processor.add (block);
 		node.block_processor.flush ();
+
+					BOOST_LOG (node.log) << "sendaction444444444444";
 		auto hash (block->hash ());
 		auto this_l (shared_from_this ());
 		node.wallets.queue_wallet_action (rai::wallets::generate_priority, [this_l, source_a, hash] {

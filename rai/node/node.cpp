@@ -204,6 +204,7 @@ void rai::network::republish_block (MDB_txn * transaction, std::shared_ptr<rai::
 		auto hash (block->hash ());
 		for (auto i (list.begin ()), n (list.end ()); i != n; ++i)
 		{
+			BOOST_LOG (node.log) << "sendactio6666"; //广播
 			republish (hash, bytes, *i);
 		}
 		if (node.config.logging.network_logging ())
@@ -556,13 +557,16 @@ void rai::alarm::run ()
 	auto done (false);
 	while (!done)
 	{
+		std::cout << "sendaction555555555eeeee" << std::endl;
 		if (!operations.empty ())
 		{
 			auto & operation (operations.top ());
 			if (operation.function)
 			{
+		std::cout << "sendaction555555555fffff" << std::endl;
 				if (operation.wakeup <= std::chrono::steady_clock::now ())
 				{
+		std::cout << "sendaction555555555gggg" << std::endl;
 					service.post (operation.function);
 					operations.pop ();
 				}
@@ -586,6 +590,7 @@ void rai::alarm::run ()
 
 void rai::alarm::add (std::chrono::steady_clock::time_point const & wakeup_a, std::function<void()> const & operation)
 {
+	std::cout<< "sendaction555555555mmmmmm" << std::endl;
 	std::lock_guard<std::mutex> lock (mutex);
 	operations.push (rai::operation ({ wakeup_a, operation }));
 	condition.notify_all ();
@@ -1960,6 +1965,7 @@ bool rai::parse_tcp_endpoint (std::string const & string, rai::tcp_endpoint & en
 
 void rai::node::start ()
 {
+	BOOST_LOG (log) << "sendaction555555555bbbbbbbb";
 	network.receive ();
 	ongoing_keepalive ();
 	ongoing_bootstrap ();
@@ -2970,6 +2976,7 @@ void rai::election::compute_rep_votes (MDB_txn * transaction_a)
 
 void rai::election::broadcast_winner ()
 {
+	BOOST_LOG (node.log) << "sendaction555555555";
 	rai::transaction transaction (node.store.environment, nullptr, false);
 	compute_rep_votes (transaction);
 	node.network.republish_block (transaction, status.winner);
@@ -3122,6 +3129,7 @@ void rai::active_transactions::announce_votes ()
 		// Announce our decision for up to `announcements_per_interval' conflict,//宣布投票结果s
 		for (; i != n && announcements < announcements_per_interval; ++i)
 		{
+			BOOST_LOG (node.log) << "sendaction555555555aaaaaaaaa";
 			auto election_l (i->election);
 			node.background ([election_l]() { election_l->broadcast_winner (); });
 			if (i->announcements >= contiguous_announcements - 1)
@@ -3203,6 +3211,8 @@ void rai::active_transactions::announce_votes ()
 			node_l->active.announce_votes ();
 		}
 	});
+
+		BOOST_LOG (node.log) << "sendaction---1111";
 }
 
 void rai::active_transactions::stop ()
