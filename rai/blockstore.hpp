@@ -153,6 +153,8 @@ public:
 	MDB_dbi frontiers;
 	// account -> block_hash, representative, balance, timestamp    // Account to head block, representative, balance, last_change
 	MDB_dbi accounts;
+
+	MDB_dbi token_accounts;
 	// block_hash -> send_block
 	MDB_dbi send_blocks;
 	// block_hash -> receive_block
@@ -163,20 +165,29 @@ public:
 	MDB_dbi change_blocks;
 	// block_hash -> state_block
 	MDB_dbi state_blocks;
+	MDB_dbi token_state_blocks;
 	// block_hash -> sender, amount, destination                    // Pending blocks to sender account, amount, destination account
 	MDB_dbi pending;
+
+	MDB_dbi token_pending;
 	// block_hash -> account, balance                               // Blocks info
 	MDB_dbi blocks_info;
+
+	MDB_dbi token_blocks_info;
 	// account -> weight                                            // Representation
 	MDB_dbi representation;
 	// block_hash -> block                                          // Unchecked bootstrap blocks
 	MDB_dbi unchecked;
+
+	MDB_dbi token_unchecked;
 	// block_hash ->                                                // Blocks that haven't been broadcast
 	MDB_dbi unsynced;
 	// (uint56_t, uint8_t) -> block_hash                            // Mapping of region to checksum
 	MDB_dbi checksum;
 	// account -> uint64_t											// Highest vote observed for account
 	MDB_dbi vote;
+
+	MDB_dbi token_vote;
 	// uint256_union -> ?											// Meta information about block store
 	MDB_dbi meta;
 };

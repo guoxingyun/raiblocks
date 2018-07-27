@@ -474,7 +474,10 @@ public:
 	rai::vote_result vote (std::shared_ptr<rai::vote>, rai::endpoint);
 	rai::node & node;
 };
-// The network is crawled for representatives by occasionally sending a unicast confirm_req for a specific block and watching to see if it's acknowledged with a vote.
+// The network is crawled for representatives by occasionally sending a unicast confirm_req for a specific block 
+// and watching to see if it's acknowledged with a vote.
+// //通过偶尔为特定块发送单播的confirm_req，可以爬行代表网络
+// 478 //然后观察是否通过投票确认。
 class rep_crawler
 {
 public:
@@ -485,7 +488,9 @@ public:
 	std::unordered_set<rai::block_hash> active;
 };
 // Processing blocks is a potentially long IO operation
+//处理块是一个潜在的长IO操作
 // This class isolates block insertion from other operations like servicing network operations
+// 这个类将块插入与其他操作(如服务网络操作)隔离开来
 class block_processor
 {
 public:

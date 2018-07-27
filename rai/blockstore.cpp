@@ -254,7 +254,13 @@ blocks_info (0),
 representation (0),
 unchecked (0),
 unsynced (0),
-checksum (0)
+checksum (0),
+
+token_accounts (0),
+token_pending (0),
+token_blocks_info (0),
+token_unchecked (0)
+
 {
 	if (!error_a)
 	{
@@ -274,6 +280,16 @@ checksum (0)
 		error_a |= mdb_dbi_open (transaction, "checksum", MDB_CREATE, &checksum) != 0;
 		error_a |= mdb_dbi_open (transaction, "vote", MDB_CREATE, &vote) != 0;
 		error_a |= mdb_dbi_open (transaction, "meta", MDB_CREATE, &meta) != 0;
+
+
+
+		error_a |= mdb_dbi_open (transaction, "token_accounts", MDB_CREATE, &token_accounts) != 0;
+		error_a |= mdb_dbi_open (transaction, "token_state", MDB_CREATE, &token_state_blocks) != 0;
+		error_a |= mdb_dbi_open (transaction, "token_pending", MDB_CREATE, &token_pending) != 0;
+		error_a |= mdb_dbi_open (transaction, "token_blocks_info", MDB_CREATE, &token_blocks_info) != 0;
+		error_a |= mdb_dbi_open (transaction, "token_unchecked", MDB_CREATE | MDB_DUPSORT, &token_unchecked) != 0;
+		error_a |= mdb_dbi_open (transaction, "token_vote", MDB_CREATE, &token_vote) != 0;
+
 		if (!error_a)
 		{
 			do_upgrades (transaction);
