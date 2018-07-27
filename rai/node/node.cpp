@@ -557,16 +557,13 @@ void rai::alarm::run ()
 	auto done (false);
 	while (!done)
 	{
-		std::cout << "sendaction555555555eeeee" << std::endl;
 		if (!operations.empty ())
 		{
 			auto & operation (operations.top ());
 			if (operation.function)
 			{
-		std::cout << "sendaction555555555fffff" << std::endl;
 				if (operation.wakeup <= std::chrono::steady_clock::now ())
 				{
-		std::cout << "sendaction555555555gggg" << std::endl;
 					service.post (operation.function);
 					operations.pop ();
 				}
@@ -590,7 +587,6 @@ void rai::alarm::run ()
 
 void rai::alarm::add (std::chrono::steady_clock::time_point const & wakeup_a, std::function<void()> const & operation)
 {
-	std::cout<< "sendaction555555555mmmmmm" << std::endl;
 	std::lock_guard<std::mutex> lock (mutex);
 	operations.push (rai::operation ({ wakeup_a, operation }));
 	condition.notify_all ();
@@ -1495,6 +1491,8 @@ online_reps (*this)
 		if (this->block_arrival.recent (block_a->hash ()))
 		{
 			rai::transaction transaction (store.environment, nullptr, false);
+
+			BOOST_LOG (log) << "llllllllllllll";
 			active.start (transaction, block_a);
 		}
 	});
@@ -2990,7 +2988,8 @@ rai::uint128_t rai::election::quorum_threshold (MDB_txn * transaction_a, rai::le
 
 rai::uint128_t rai::election::minimum_threshold (MDB_txn * transaction_a, rai::ledger & ledger_a)
 {
-	// Minimum number of votes needed to change our ledger, under which we're probably disconnected
+	// Minimum number of votes needed to change our ledger, under which we're probably disconnected //fixme
+	// 更改我们的总账所需的最小票数，在此基础上我们可能会失去联系//之前的判断都已经大于百分之五十一了，这个没必要。。
 	return ledger_a.supply (transaction_a) / 16;
 }
 
@@ -3039,7 +3038,7 @@ void rai::election::confirm_once (MDB_txn * transaction_a)
 	}
 }
 
-bool rai::election::have_quorum (MDB_txn * transaction_a)
+bool rai::election::have_quorum (MDB_txn * transaction_a) 
 {
 	auto tally_l (node.ledger.tally (transaction_a, votes));
 	assert (tally_l.size () > 0);
@@ -3223,11 +3222,15 @@ void rai::active_transactions::stop ()
 
 bool rai::active_transactions::start (MDB_txn * transaction_a, std::shared_ptr<rai::block> block_a, std::function<void(std::shared_ptr<rai::block>, bool)> const & confirmation_action_a)
 {
+
+			BOOST_LOG (node.log) << "mmmmmmmmmmmm";
 	return start (transaction_a, std::make_pair (block_a, nullptr), confirmation_action_a);
 }
 
 bool rai::active_transactions::start (MDB_txn * transaction_a, std::pair<std::shared_ptr<rai::block>, std::shared_ptr<rai::block>> blocks_a, std::function<void(std::shared_ptr<rai::block>, bool)> const & confirmation_action_a)
 {
+
+			BOOST_LOG (node.log) << "nnnnnnnnnnnnn";
 	assert (blocks_a.first != nullptr);
 	std::lock_guard<std::mutex> lock (mutex);
 	auto primary_block (blocks_a.first);
