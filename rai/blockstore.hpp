@@ -6,6 +6,7 @@ namespace rai
 {
 /**
  * The value produced when iterating with \ref store_iterator
+ * store_iterator通过迭代产生的值
  */
 class store_entry
 {
@@ -19,6 +20,7 @@ public:
 
 /**
  * Iterates the key/value pairs of a transaction
+ * 迭代事务的键/值对
  */
 class store_iterator
 {
@@ -42,6 +44,7 @@ public:
 
 /**
  * Manages block storage and iteration
+ * 管理块存储和迭代
  */
 class block_store
 {
@@ -120,12 +123,16 @@ public:
 	void checksum_del (MDB_txn *, uint64_t, uint8_t);
 
 	// Return latest vote for an account from store
+	// 从存储返回对帐户的最新投票
 	std::shared_ptr<rai::vote> vote_get (MDB_txn *, rai::account const &);
 	// Populate vote with the next sequence number
+	// 用下一个序列号填充投票
 	std::shared_ptr<rai::vote> vote_generate (MDB_txn *, rai::account const &, rai::raw_key const &, std::shared_ptr<rai::block>);
 	// Return either vote or the stored vote with a higher sequence number
+	// 返回具有较高序列号的投票或已存储的投票
 	std::shared_ptr<rai::vote> vote_max (MDB_txn *, std::shared_ptr<rai::vote>);
 	// Return latest vote for an account considering the vote cache
+	// 返回考虑投票缓存的帐户的最新投票
 	std::shared_ptr<rai::vote> vote_current (MDB_txn *, rai::account const &);
 	void flush (MDB_txn *);
 	rai::store_iterator vote_begin (MDB_txn *);
@@ -180,9 +187,9 @@ public:
 	MDB_dbi unchecked;
 
 	MDB_dbi token_unchecked;
-	// block_hash ->                                                // Blocks that haven't been broadcast
+	// block_hash ->                                                // Blocks that haven't been broadcast 未广播出去的块
 	MDB_dbi unsynced;
-	// (uint56_t, uint8_t) -> block_hash                            // Mapping of region to checksum
+	// (uint56_t, uint8_t) -> block_hash                            // Mapping of region to checksum 区域->校验的映射
 	MDB_dbi checksum;
 	// account -> uint64_t											// Highest vote observed for account
 	MDB_dbi vote;

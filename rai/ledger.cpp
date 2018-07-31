@@ -104,7 +104,7 @@ public:
 		}
 		auto balance (ledger.balance (transaction, block_a.hashables.previous));
 		auto is_send (block_a.hashables.balance < balance);
-		// Add in amount delta
+		// Add in amount delta,回退后代表账户的投票权也要对应回退
 		ledger.store.representation_add (transaction, hash, 0 - block_a.hashables.balance.number ());
 		if (!representative.is_zero ())
 		{
@@ -505,7 +505,7 @@ state_block_generate_canary (state_block_generate_canary_a)
 {
 }
 
-// Sum the weights for each vote and return the winning block with its vote tally
+// Sum the weights for each vote and return the winning block with its vote tally,将每一票的权重加起来，并以投票结果返回胜利区块。
 std::pair<rai::uint128_t, std::shared_ptr<rai::block>> rai::ledger::winner (MDB_txn * transaction_a, rai::votes const & votes_a)
 {
 	auto tally_l (tally (transaction_a, votes_a));
@@ -529,7 +529,8 @@ std::map<rai::uint128_t, std::shared_ptr<rai::block>, std::greater<rai::uint128_
 		auto weight_l (weight (transaction_a, i.first));
 		existing->second += weight_l;
 	}
-	// Construction a map of vote total -> block in decreasing order.
+	// Construction a map of vote total -> block in decreasing
+	// order.构建投票值和块的map
 	std::map<rai::uint128_t, std::shared_ptr<rai::block>, std::greater<rai::uint128_t>> result;
 	for (auto & i : totals)
 	{
@@ -579,6 +580,7 @@ rai::process_return rai::ledger::process (MDB_txn * transaction_a, rai::block co
 }
 
 // Money supply for heuristically calculating vote percentages
+// 计算供应量
 rai::uint128_t rai::ledger::supply (MDB_txn * transaction_a)
 {
 	auto unallocated (account_balance (transaction_a, rai::genesis_account));
@@ -660,6 +662,7 @@ rai::block_hash rai::ledger::block_source (MDB_txn * transaction_a, rai::block c
 {
 	// If block_a.source () is nonzero, then we have our source.
 	// However, universal blocks will always return zero.
+	// 老版本返回source，state块返回link
 	rai::block_hash result (block_a.source ());
 	rai::state_block const * state_block (dynamic_cast<rai::state_block const *> (&block_a));
 	if (state_block != nullptr && !is_send (transaction_a, *state_block))
@@ -691,7 +694,8 @@ rai::uint128_t rai::ledger::weight (MDB_txn * transaction_a, rai::account const 
 	return store.representation_get (transaction_a, account_a);
 }
 
-// Rollback blocks until `block_a' doesn't exist
+// Rollback blocks until `block_a' doesn't
+// exist,双花的块回退之后，连带着双花块之后连接的块也回退
 void rai::ledger::rollback (MDB_txn * transaction_a, rai::block_hash const & block_a)
 {
 	assert (store.block_exists (transaction_a, block_a));
@@ -742,6 +746,7 @@ rai::account rai::ledger::account (MDB_txn * transaction_a, rai::block_hash cons
 }
 
 // Return amount decrease or increase for block
+// 账户交易的变化量
 rai::uint128_t rai::ledger::amount (MDB_txn * transaction_a, rai::block_hash const & hash_a)
 {
 	amount_visitor amount (transaction_a, store);
@@ -758,6 +763,7 @@ rai::block_hash rai::ledger::latest (MDB_txn * transaction_a, rai::account const
 }
 
 // Return latest root for account, account number of there are no blocks for this account.
+// 返回账户边界值
 rai::block_hash rai::ledger::latest_root (MDB_txn * transaction_a, rai::account const & account_a)
 {
 	rai::account_info info;

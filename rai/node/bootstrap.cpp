@@ -61,6 +61,7 @@ public:
 		if (complete)
 		{
 			// Might not be a dependency block (if this is a send) but that's okay
+			// 可能不是依赖块(如果这是发送)，但是没关系。
 			add_dependency (block_a.hashables.link);
 		}
 	}
@@ -74,6 +75,7 @@ public:
 		else
 		{
 			// Block is already synchronized, normal
+			//
 		}
 	}
 	MDB_txn * transaction;
@@ -110,6 +112,7 @@ void rai::block_synchronization::fill_dependencies (MDB_txn * transaction_a)
 rai::sync_result rai::block_synchronization::synchronize_one (MDB_txn * transaction_a)
 {
 	// Blocks that depend on multiple paths e.g. receive_blocks, need to have their dependencies recalculated each time
+	// 依赖于多个路径的块，例如receive_blocks，每次都需要重新计算它们的依赖关系
 	fill_dependencies (transaction_a);
 	rai::sync_result result (rai::sync_result::success);
 	auto hash (blocks.back ());
@@ -121,7 +124,10 @@ rai::sync_result rai::block_synchronization::synchronize_one (MDB_txn * transact
 	}
 	else
 	{
-		// A block that can be the dependency of more than one other block, e.g. send blocks, can be added to the dependency list more than once.  Subsequent retrievals won't find the block but this isn't an error
+		// A block that can be the dependency of more than one other block, e.g. send blocks, 
+		// can be added to the dependency list more than once.  Subsequent retrievals won't find the block but this isn't an error
+		// //可以是多个块的依赖关系的块，例如发送块，
+		// //可以多次添加到依赖项列表中。后续的检索将无法找到块，但这不是一个错误。
 	}
 	return result;
 }
@@ -258,13 +264,16 @@ void rai::bootstrap_client::run ()
 					case boost::system::errc::operation_canceled:
 					case boost::system::errc::timed_out:
 					case 995: //Windows The I/O operation has been aborted because of either a thread exit or an application request
+						//由于线程退出或应用程序请求，I/O操作已被中止
 					case 10061: //Windows No connection could be made because the target machine actively refused it
+						//由于目标机主动拒绝，所以无法连接到Windows。
 						break;
 				}
 			}
 		}
 	});
 }
+
 
 void rai::frontier_req_client::run ()
 {
@@ -324,6 +333,8 @@ void rai::frontier_req_client::receive_frontier ()
 
 		// An issue with asio is that sometimes, instead of reporting a bad file descriptor during disconnect,
 		// we simply get a size of 0.
+		// // asio的一个问题是，有时在断开连接时，不会报告坏的文件描述符，
+		// //我们只得到0的大小
 		if (size_a == size_l)
 		{
 			this_l->received_frontier (ec, size_a);
@@ -491,6 +502,7 @@ pull (pull_a)
 rai::bulk_pull_client::~bulk_pull_client ()
 {
 	// If received end block is not expected end block
+	// 如果接收到结束块，则不期望结束块
 	if (expected != pull.end)
 	{
 		pull.head = expected;
@@ -618,6 +630,7 @@ void rai::bulk_pull_client::received_type ()
 		case rai::block_type::not_a_block:
 		{
 			// Avoid re-using slow peers, or peers that sent the wrong blocks.
+			//
 			if (!connection->pending_stop && expected == pull.end)
 			{
 				connection->attempt->pool_connection (connection);
@@ -898,6 +911,9 @@ void rai::bootstrap_attempt::request_pull (std::unique_lock<std::mutex> & lock_a
 		auto size (pulls.size ());
 		// The bulk_pull_client destructor attempt to requeue_pull which can cause a deadlock if this is the last reference
 		// Dispatch request in an external thread in case it needs to be destroyed
+		// //
+		// bulk_pull_client析构函数尝试请求e_pull，如果这是最后一个引用，则会导致死锁
+		// 913 //在外部线程中发出请求，以防需要销毁
 		node->background ([connection_l, pull, size]() {
 			auto client (std::make_shared<rai::bulk_pull_client> (connection_l, pull));
 			client->request ();
@@ -971,6 +987,7 @@ void rai::bootstrap_attempt::run ()
 			}
 		}
 		// Flushing may resolve forks which can add more pulls
+		// 刷新可以解决分叉，可以增加更多的拉力
 		BOOST_LOG (node->log) << "Flushing unchecked blocks";
 		lock.unlock ();
 		node->block_processor.flush ();
@@ -1099,6 +1116,7 @@ void rai::bootstrap_attempt::populate_connections ()
 				}
 				// Force-stop the slowest peers, since they can take the whole bootstrap hostage by dribbling out blocks on the last remaining pull.
 				// This is ~1.5kilobits/sec.
+				//
 				if (elapsed_sec > bootstrap_minimum_termination_time_sec && blocks_per_sec < bootstrap_minimum_blocks_per_sec)
 				{
 					if (node->config.logging.bulk_pull_logging ())
@@ -1116,6 +1134,8 @@ void rai::bootstrap_attempt::populate_connections ()
 
 	// We only want to drop slow peers when more than 2/3 are active. 2/3 because 1/2 is too aggressive, and 100% rarely happens.
 	// Probably needs more tuning.
+	// //我们只希望当2/3以上的人是活跃的时侯才会掉队。2/3因为1/2太激进了，100%很少发生。
+	// //可能需要更多的调优。
 	if (sorted_connections.size () >= (target * 2) / 3 && target >= 4)
 	{
 		// 4 -> 1, 8 -> 2, 16 -> 4, arbitrary, but seems to work well.
@@ -1152,6 +1172,7 @@ void rai::bootstrap_attempt::populate_connections ()
 		auto delta = std::min ((target - connections) * 2, bootstrap_max_new_connections);
 		// TODO - tune this better
 		// Not many peers respond, need to try to make more connections than we need.
+		// 没有多少同伴会回应，需要尝试建立比我们需要的更多的联系。
 		for (int i = 0; i < delta; i++)
 		{
 			auto peer (node->peers.bootstrap_peer ());

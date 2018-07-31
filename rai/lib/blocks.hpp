@@ -252,6 +252,7 @@ public:
 	// Allows lookup of account balance simply by looking at the head block
 	rai::amount balance;
 	// Link field contains source block_hash if receiving, destination account if sending
+	// 区分了link字段在不同块中的意思
 	rai::uint256_union link;
 };
 class state_block : public rai::block

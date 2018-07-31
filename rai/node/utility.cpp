@@ -72,6 +72,8 @@ rai::mdb_env::mdb_env (bool & error_a, boost::filesystem::path const & path_a, i
 			assert (status3 == 0);
 			// It seems if there's ever more threads than mdb_env_set_maxreaders has read slots available, we get failures on transaction creation unless MDB_NOTLS is specified
 			// This can happen if something like 256 io_threads are specified in the node config
+			// //似乎如果有比mdb_env_set_maxreader拥有的读槽更多的线程，那么除非指定MDB_NOTLS，否则在创建事务时会出现失败
+			// 如果在节点配置中指定了256个io_threads，就会发生这种情况。
 			auto status4 (mdb_env_open (environment, path_a.string ().c_str (), MDB_NOSUBDIR | MDB_NOTLS, 00600));
 			error_a = status4 != 0;
 		}
@@ -147,6 +149,7 @@ rai::uint256_union rai::mdb_val::uint256 () const
 rai::mdb_val::operator MDB_val * () const
 {
 	// Allow passing a temporary to a non-c++ function which doesn't have constness
+	// 允许传递一个临时的非c++函数，该函数不具有一致性。
 	return const_cast<MDB_val *> (&value);
 };
 

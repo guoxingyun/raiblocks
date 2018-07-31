@@ -80,8 +80,11 @@ void rai::work_pool::loop (uint64_t thread)
 			while (ticket == ticket_l && output < rai::work_pool::publish_threshold)
 			{
 				// Don't query main memory every iteration in order to reduce memory bus traffic
+				// 不要为了减少内存总线流量而每次迭代都查询主内存
 				// All operations here operate on stack memory
+				// 这里的所有操作都对堆栈内存进行操作
 				// Count iterations down to zero since comparing to zero is easier than comparing to another number
+				//
 				unsigned iteration (256);
 				while (iteration && output < rai::work_pool::publish_threshold)
 				{
@@ -100,6 +103,7 @@ void rai::work_pool::loop (uint64_t thread)
 				assert (output >= rai::work_pool::publish_threshold);
 				assert (work_value (current_l.first, work) == output);
 				// Signal other threads to stop their work next time they check ticket
+				// 当其他线程检查票据时，通知它们停止它们的工作
 				++ticket;
 				current_l.second (work);
 				pending.pop_front ();

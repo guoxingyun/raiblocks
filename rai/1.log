@@ -1,0 +1,464 @@
+blockstore.cpp:29:		//? fixme :( 更新上一个区块的hash值为当前hash值
+blockstore.cpp:42:		// Open blocks don't have a predecessor
+blockstore.cpp:43:		// open 块没有前区块
+blockstore.cpp:441:				//std::cerr << boost::str (boost::format ("Adding successor for account %1%, block %2%, successor %3%\n") % account.to_account () % hash.to_string () % successor.to_string ());
+blockstore.cpp:502:		// Create a dummy vote with the same sequence number for easy upgrading.  This won't have a valid signature.
+blockstore.cpp:503:		// 创建一个具有相同序列号的虚拟投票，以便轻松升级。它没有有效的签名。
+blockstore.cpp:519:	//std::cerr << boost::str (boost::format ("Performing database upgrade to version 10...\n"));
+blockstore.cpp:527:			//std::cerr << boost::str (boost::format ("Upgrading account %1%...\n") % account.to_account ());
+blockstore.cpp:545:	//std::cerr << boost::str (boost::format ("Database upgrade is completed\n"));
+blockstore.cpp:642:						// Block not found
+blockstore.cpp:1056:	// Checking if same unchecked block is already in database
+blockstore.cpp:1067:	// Inserting block if it wasn't found in database
+blockstore.hpp:126:	// 从存储返回对帐户的最新投票
+blockstore.hpp:128:	// Populate vote with the next sequence number
+blockstore.hpp:129:	// 用下一个序列号填充投票
+blockstore.hpp:131:	// Return either vote or the stored vote with a higher sequence number
+blockstore.hpp:132:	// 返回具有较高序列号的投票或已存储的投票
+blockstore.hpp:135:	// 返回考虑投票缓存的帐户的最新投票
+blockstore.hpp:159:	// block_hash -> account                                        // Maps head blocks to owning account
+blockstore.hpp:161:	// account -> block_hash, representative, balance, timestamp    // Account to head block, representative, balance, last_change
+blockstore.hpp:165:	// block_hash -> send_block
+blockstore.hpp:167:	// block_hash -> receive_block
+blockstore.hpp:169:	// block_hash -> open_block
+blockstore.hpp:171:	// block_hash -> change_block
+blockstore.hpp:173:	// block_hash -> state_block
+blockstore.hpp:176:	// block_hash -> sender, amount, destination                    // Pending blocks to sender account, amount, destination account
+blockstore.hpp:180:	// block_hash -> account, balance                               // Blocks info
+blockstore.hpp:184:	// account -> weight                                            // Representation
+blockstore.hpp:186:	// block_hash -> block                                          // Unchecked bootstrap blocks
+blockstore.hpp:190:	// block_hash ->                                                // Blocks that haven't been broadcast 未广播出去的块
+blockstore.hpp:192:	// (uint56_t, uint8_t) -> block_hash                            // Mapping of region to checksum 区域->校验的映射
+blockstore.hpp:194:	// account -> uint64_t											// Highest vote observed for account
+blockstore.hpp:198:	// uint256_union -> ?											// Meta information about block store
+common.cpp:14:// Genesis keys for network variants
+common.cpp:19:char const * beta_public_key_data = "0311B25E0D1E1D7724BBA5BD523954F1DBCFC01CB8671D55ED2D32C7549FB252"; // xrb_11rjpbh1t9ixgwkdqbfxcawobwgusz13sg595ocytdbkrxcbzekkcqkc3dn1
+common.cpp:20:char const * live_public_key_data = "27CA2131757727B757B5DE1D1048B3019B36E9E4F05D1E5F38E32146069AB97C"; // xrb_3t6k35gi95xu6tergt6p69ck76ogmitsa8mnijtpxm9fkcm736xtoncuohr3
+common.cpp:66:		// Randomly generating these mean no two nodes will ever have the same sentinel values which protects against some insecure algorithms
+common.cpp:67:		// 随机生成这些节点意味着没有两个节点具有相同的前哨值，这可以防止一些不安全的算法
+common.cpp:123:		// Vote on this block hasn't been seen from rep before
+common.cpp:124:		// 还没对该块进行过投票
+common.cpp:129:	{//当前写入的块和投票确认结果对比
+common.cpp:132:			// Rep changed their vote
+common.cpp:138:			// Rep vote remained the same
+common.cpp:159:// Create a new random keypair
+common.cpp:166:// Create a keypair given a hex string of the private key
+common.cpp:174:// Serialize a block prefixed with an 8-bit typecode
+common.hpp:202:	// Vote round sequence number
+common.hpp:203:	// 投票的序列号
+common.hpp:206:	// Account that's voting
+common.hpp:208:	// Signature of sequence + block hash
+common.hpp:209:	// 还对（序列号和块hash）进行签名
+common.hpp:214:	invalid, // Vote is not signed correctly,无效签名
+common.hpp:215:	replay, // Vote does not have the highest sequence number, it's a replay，投票没有最高的序列号，这是重播
+common.hpp:216:	vote // Vote has the highest sequence number，最高序列的投票
+common.hpp:227:	progress, // Hasn't been seen before, signed correctly,OK块
+common.hpp:228:	bad_signature, // Signature was bad, forged or transmission error，无效的签名
+common.hpp:229:	old, // Already seen and was valid，之前存在的有效块
+common.hpp:230:	negative_spend, // Malicious attempt to spend a negative amount,恶意企图花费一个负数金额
+common.hpp:231:	fork, // Malicious fork based on previous,双花
+common.hpp:232:	unreceivable, // Source block doesn't exist or has already been received，源块不存在，或者已经被接收过了
+common.hpp:233:	gap_previous, // Block marked as previous is unknown,,间隙块，找不到前区块
+common.hpp:234:	gap_source, // Block marked as source is unknown,再数据库没有找到发送方的源区块
+common.hpp:235:	state_block_disabled, // Awaiting state block canary block，没有打开能state块的权限
+common.hpp:236:	not_receive_from_send, // Receive does not have a send source，打包接收块没有发送方？
+common.hpp:237:	account_mismatch, // Account number in open block doesn't match send destination，open块中的账户和发送方的目标地址不一致
+common.hpp:238:	opened_burn_account, // The impossible happened, someone found the private key associated with the public key '0'.销毁账号被破解出私钥的特殊处理
+common.hpp:239:	balance_mismatch, // Balance and amount delta don't match，余额和发送量不一致
+common.hpp:240:	block_position // This block cannot follow the previous block，该块不能链接到前区块下,除了open块其他都允许返回true
+common.hpp:263:	// Root block of fork,分叉双花前的块hash
+common.hpp:265:	// All votes received by account，账户接收的所有选票
+common.hpp:280:// A block hash that compares inequal to any real block
+common.hpp:281:// 在表中没找到该块hash
+common.hpp:283:// An account number that compares inequal to any real account number
+common.hpp:284:// 表中没该账户
+config.hpp:8:// Network variants with different genesis blocks and network parameters
+config.hpp:13:	// Normal work parameters, secret beta genesis key, beta IP ports
+config.hpp:15:	// Normal work parameters, secret live key, live IP ports
+ledger.cpp:107:		// Add in amount delta,回退后代表账户的投票权也要对应回退
+ledger.cpp:111:			// Move existing representation
+ledger.cpp:188:	result.code = existing ? rai::process_result::old : rai::process_result::progress; // Have we seen this block before? (Unambiguous)
+ledger.cpp:191:		result.code = validate_message (block_a.hashables.account, hash, block_a.signature) ? rai::process_result::bad_signature : rai::process_result::progress; // Is this block signed correctly (Unambiguous)
+ledger.cpp:193:		{//销毁账号即使破解出来密钥也无法打块
+ledger.cpp:195:			// Is this for the burn account? (Unambiguous)
+ledger.cpp:204:					// Account already exists
+ledger.cpp:205:					result.code = block_a.hashables.previous.is_zero () ? rai::process_result::fork : rai::process_result::progress; // Has this account already been opened? (Ambigious)
+ledger.cpp:208:						result.code = ledger.store.block_exists (transaction, block_a.hashables.previous) ? rai::process_result::progress : rai::process_result::gap_previous; // Does the previous block exist in the ledger? (Unambigious)
+ledger.cpp:213:							result.code = block_a.hashables.previous == info.head ? rai::process_result::progress : rai::process_result::fork; // Is the previous block the account's head block? (Ambigious)
+ledger.cpp:219:					// Account does not yet exists------------OPEM
+ledger.cpp:220:					result.code = block_a.previous ().is_zero () ? rai::process_result::progress : rai::process_result::gap_previous; // Does the first block in an account yield 0 for previous() ? (Unambigious)
+ledger.cpp:223:						result.code = !block_a.hashables.link.is_zero () ? rai::process_result::progress : rai::process_result::gap_source; // Is the first block receiving from a send ? (Unambigious)
+ledger.cpp:232:							result.code = ledger.store.block_exists (transaction, block_a.hashables.link) ? rai::process_result::progress : rai::process_result::gap_source; // Have we seen the source block already? (Harmless)
+ledger.cpp:237:								result.code = ledger.store.pending_get (transaction, key, pending) ? rai::process_result::unreceivable : rai::process_result::progress; // Has this source already been received (Malformed)
+ledger.cpp:246:							// If there's no link, the balance must remain the same, only the representative can change
+ledger.cpp:258:						// Move existing representation  本账户代表的投票权重减少，发送方的代表投票权重增加,子类型为change
+ledger.cpp:261:					// Add in amount delta
+ledger.cpp:264:					if (is_send)//子类型为发送
+ledger.cpp:271:					{//子类型为接收，删除未接收记录
+ledger.cpp:280:					// Frontier table is unnecessary for state blocks and this also prevents old blocks from being inserted on top of state blocks
+ledger.cpp:281:					// 状态块不需要边界表，这也防止旧的块插入到状态块的顶部?????
+ledger.cpp:293:	result.code = existing ? rai::process_result::old : rai::process_result::progress; // Have we seen this block before? (Harmless)
+ledger.cpp:297:		result.code = previous != nullptr ? rai::process_result::progress : rai::process_result::gap_previous; // Have we seen the previous block already? (Harmless)
+ledger.cpp:311:					result.code = validate_message (account, hash, block_a.signature) ? rai::process_result::bad_signature : rai::process_result::progress; // Is this block signed correctly (Malformed)
+ledger.cpp:334:	result.code = existing ? rai::process_result::old : rai::process_result::progress; // Have we seen this block before? (Harmless)
+ledger.cpp:338:		result.code = previous != nullptr ? rai::process_result::progress : rai::process_result::gap_previous; // Have we seen the previous block already? (Harmless)
+ledger.cpp:348:					result.code = validate_message (account, hash, block_a.signature) ? rai::process_result::bad_signature : rai::process_result::progress; // Is this block signed correctly (Malformed)
+ledger.cpp:355:						result.code = info.balance.number () >= block_a.hashables.balance.number () ? rai::process_result::progress : rai::process_result::negative_spend; // Is this trying to spend a negative amount (Malicious)
+ledger.cpp:380:	result.code = existing ? rai::process_result::old : rai::process_result::progress; // Have we seen this block already?  (Harmless)
+ledger.cpp:390:				result.code = ledger.store.block_exists (transaction, block_a.hashables.source) ? rai::process_result::progress : rai::process_result::gap_source; // Have we seen the source block already? (Harmless)
+ledger.cpp:394:					result.code = account.is_zero () ? rai::process_result::gap_previous : rai::process_result::progress; //Have we seen the previous block? No entries for account at all (Harmless)
+ledger.cpp:397:						result.code = rai::validate_message (account, hash, block_a.signature) ? rai::process_result::bad_signature : rai::process_result::progress; // Is the signature valid (Malformed)
+ledger.cpp:407:								result.code = ledger.store.pending_get (transaction, key, pending) ? rai::process_result::unreceivable : rai::process_result::progress; // Has this source already been received (Malformed)
+ledger.cpp:440:	result.code = existing ? rai::process_result::old : rai::process_result::progress; // Have we seen this block already? (Harmless)
+ledger.cpp:444:		result.code = source_missing ? rai::process_result::gap_source : rai::process_result::progress; // Have we seen the source block? (Harmless)
+ledger.cpp:447:			result.code = rai::validate_message (block_a.hashables.account, hash, block_a.signature) ? rai::process_result::bad_signature : rai::process_result::progress; // Is the signature valid (Malformed)
+ledger.cpp:451:				result.code = ledger.store.account_get (transaction, block_a.hashables.account, info) ? rai::process_result::progress : rai::process_result::fork; // Has this account already been opened? (Malicious)
+ledger.cpp:456:					result.code = ledger.store.pending_get (transaction, key, pending) ? rai::process_result::unreceivable : rai::process_result::progress; // Has this source already been received (Malformed)
+ledger.cpp:459:						result.code = block_a.hashables.account == rai::burn_account ? rai::process_result::opened_burn_account : rai::process_result::progress; // Is it burning 0 account? (Malicious)
+ledger.cpp:485:} // namespace
+ledger.cpp:508:// Sum the weights for each vote and return the winning block with its vote tally,将每一票的权重加起来，并以投票结果返回胜利区块。
+ledger.cpp:519:	// Construct a map of blocks -> vote total.
+ledger.cpp:532:	// Construction a map of vote total -> block in decreasing
+ledger.cpp:533:	// order.构建投票值和块的map
+ledger.cpp:542:// Balance for account containing hash
+ledger.cpp:550:// Balance for an account by account number
+ledger.cpp:582:// Money supply for heuristically calculating vote percentages
+ledger.cpp:583:// 计算供应量
+ledger.cpp:663:	// If block_a.source () is nonzero, then we have our source.
+ledger.cpp:664:	// However, universal blocks will always return zero.
+ledger.cpp:665:	// 老版本返回source，state块返回link
+ledger.cpp:675:// Vote weight of an account
+ledger.cpp:697:// Rollback blocks until `block_a' doesn't
+ledger.cpp:698:// exist,双花的块回退之后，连带着双花块之后连接的块也回退
+ledger.cpp:714:// Return account containing hash
+ledger.cpp:748:// Return amount decrease or increase for block
+ledger.cpp:749:// 账户交易的变化量
+ledger.cpp:766:// 返回账户边界值
+ledger.cpp:806:	//BOOST_LOG (node.log) << boost::str (boost::format("gggggggis -%1%-")% store.block_exists (transaction_a, state_block_parse_canary));
+ledger.cpp:807://	return store.block_exists (transaction_a, state_block_parse_canary);
+ledger.cpp:814://	BOOST_LOG (node.log) << boost::str (boost::format("xxxxxxxxxxis -%1%-")% store.block_exists (transaction_a, state_block_generate_canary));
+ledger.cpp:815:	//return state_block_parsing_enabled (transaction_a) && store.block_exists (transaction_a, state_block_generate_canary);
+lib/numbers.cpp:57:	destination_a.append ("_brx"); // xrb_
+lib/numbers.cpp:179:// Construct a uint256_union = AES_ENC_CTR (cleartext, key, iv)
+lib/numbers.cpp:431:// This this = AES_DEC_CTR (ciphertext, key, iv)
+lib/numbers.cpp:615:		// Impossible.
+lib/numbers.cpp:619:	// This could be cached per-locale.
+lib/numbers.cpp:669:		// Display e.g. "< 0.01" rather than 0.
+lib/work.hpp:38:	// Local work threshold for rate-limiting publishing blocks. ~5 seconds of work.
+lib/blocks.hpp:14:// We operate on streams of uint8_t by convention
+lib/blocks.hpp:16:// Read a raw byte stream the size of `T' and fill value.
+lib/blocks.hpp:45:	// Return a digest of the hashables in this block.
+lib/blocks.hpp:51:	// Previous block in account's chain, zero for open block
+lib/blocks.hpp:53:	// Source block for open/receive blocks, zero otherwise.
+lib/blocks.hpp:55:	// Previous block or account number for open blocks
+lib/blocks.hpp:242:	// Account# / public key that operates this account
+lib/blocks.hpp:243:	// Uses:
+lib/blocks.hpp:244:	// Bulk signature validation in advance of further ledger processing
+lib/blocks.hpp:245:	// Arranging uncomitted transactions by account
+lib/blocks.hpp:247:	// Previous transaction in this chain
+lib/blocks.hpp:249:	// Representative of this account
+lib/blocks.hpp:251:	// Current balance of this account
+lib/blocks.hpp:252:	// Allows lookup of account balance simply by looking at the head block
+lib/blocks.hpp:254:	// Link field contains source block_hash if receiving, destination account if sending
+lib/utility.hpp:10:// Lower priority of calling work generating thread
+lib/interface.h:8:typedef unsigned char * xrb_uint128; // 16byte array for public and private keys
+lib/interface.h:9:typedef unsigned char * xrb_uint256; // 32byte array for public and private keys
+lib/interface.h:10:typedef unsigned char * xrb_uint512; // 64byte array for signatures
+lib/interface.h:13:// Convert amount bytes 'source' to a 39 byte not-null-terminated decimal string 'destination'
+lib/interface.h:15:// Convert public/private key bytes 'source' to a 64 byte not-null-terminated hex string 'destination'
+lib/interface.h:17:// Convert public key bytes 'source' to a 65 byte non-null-terminated account string 'destination'
+lib/interface.h:19:// Convert public/private key bytes 'source' to a 128 byte not-null-terminated hex string 'destination'
+lib/interface.h:22:// Convert 39 byte decimal string 'source' to a byte array 'destination'
+lib/interface.h:23:// Return 0 on success, nonzero on error
+lib/interface.h:25:// Convert 64 byte hex string 'source' to a byte array 'destination'
+lib/interface.h:26:// Return 0 on success, nonzero on error
+lib/interface.h:28:// Convert 128 byte hex string 'source' to a byte array 'destination'
+lib/interface.h:29:// Return 0 on success, nonzero on error
+lib/interface.h:32:// Check if the null-terminated string 'account' is a valid xrb account number
+lib/interface.h:33:// Return 0 on correct, nonzero on invalid
+lib/interface.h:36:// Create a new random number in to 'destination'
+lib/interface.h:38:// Retrieve the deterministic private key for 'seed' at 'index'
+lib/interface.h:40:// Derive the public key 'pub' from 'key'
+lib/interface.h:43:// Sign 'transaction' using 'private_key' and write to 'signature'
+lib/interface.h:45:// Generate work for 'transaction'
+lib/interface.h:49:} // extern "C"
+lib/interface.h:52:#endif // XRB_INTERFACE_H
+lib/work.cpp:57:	// Quick RNG for work attempts.
+lib/work.cpp:70:			// Only work thread 0 notifies work observers
+lib/work.cpp:79:			// ticket != ticket_l indicates a different thread found a solution and we should stop
+lib/work.cpp:82:				// Don't query main memory every iteration in order to reduce memory bus traffic
+lib/work.cpp:83:				// All operations here operate on stack memory
+lib/work.cpp:84:				// Count iterations down to zero since comparing to zero is easier than comparing to another number
+lib/work.cpp:99:				// If the ticket matches what we started with, we're the ones that found the solution
+lib/work.cpp:102:				// Signal other threads to stop their work next time they check ticket
+lib/work.cpp:109:				// A different thread found a solution
+lib/work.cpp:114:			// Wait for a work request
+lib/numbers.hpp:9:// Random pool used by RaiBlocks.
+lib/numbers.hpp:10:// This must be thread_local as long as the AutoSeededRandomPool implementation requires it
+lib/numbers.hpp:15:// SI dividers
+lib/numbers.hpp:16:rai::uint128_t const Gxrb_ratio = rai::uint128_t ("1000000000000000000000000000000000"); // 10^33
+lib/numbers.hpp:17:rai::uint128_t const Mxrb_ratio = rai::uint128_t ("1000000000000000000000000000000"); // 10^30
+lib/numbers.hpp:18:rai::uint128_t const kxrb_ratio = rai::uint128_t ("1000000000000000000000000000"); // 10^27
+lib/numbers.hpp:19:rai::uint128_t const xrb_ratio = rai::uint128_t ("1000000000000000000000000"); // 10^24
+lib/numbers.hpp:20:rai::uint128_t const mxrb_ratio = rai::uint128_t ("1000000000000000000000"); // 10^21
+lib/numbers.hpp:21:rai::uint128_t const uxrb_ratio = rai::uint128_t ("1000000000000000000"); // 10^18
+lib/numbers.hpp:51:// Balances are 128 bit.
+lib/numbers.hpp:85:// All keys and hashes are 256 bit.
+lib/numbers.hpp:122:// Only signatures are 512 bit.
+node/rpc_secure.cpp:27:			// Allow self-signed certificates
+node/rpc_secure.cpp:61:	// This is called if the key is password protected
+node/rpc_secure.cpp:68:	// The following two options disables the session cache and enables stateless session resumption.
+node/rpc_secure.cpp:69:	// This is necessary because of the way the RPC server abruptly terminate connections.
+node/rpc_secure.cpp:80:	// Verify client certificates?
+node/rpc_secure.cpp:120:	// Perform the SSL handshake
+node/rpc_secure.cpp:130:	// No-op. We initiate the shutdown (since the RPC server kills the connection after each request)
+node/rpc_secure.cpp:131:	// and we'll thus get an expected EOF error. If the client disconnects, a short-read error will be expected.
+node/rpc_secure.cpp:163:						// Perform the SSL shutdown
+node/node.hpp:53:	// Check if we have vote quorum
+node/node.hpp:55:	// Tell the network our view of the winner
+node/node.hpp:57:	// Change our winner to agree with the network
+node/node.hpp:61:	// Confirmation method 2, settling time
+node/node.hpp:76:	// Number of announcements in a row for this fork
+node/node.hpp:80:// Core class for determining consensus
+node/node.hpp:81:// Holds all active blocks i.e. recently added blocks that need confirmation
+node/node.hpp:86:	// Start an election for a block
+node/node.hpp:87:	// Call action with confirmed block, may be different than what we started with
+node/node.hpp:89:	// Also supply alternatives to block, to confirm_req reps with if the boolean argument is true
+node/node.hpp:90:	// Should only be used for old elections
+node/node.hpp:91:	// The first block should be the one in the ledger
+node/node.hpp:93:	// If this returns true, the vote is a replay
+node/node.hpp:94:	// If this returns false, the vote may or may not be a replay
+node/node.hpp:96:	// Is the root of this block in the roots container
+node/node.hpp:109:	// Maximum number of conflicts to vote on per interval, lowest root hash first
+node/node.hpp:111:	// After this many successive vote announcements, block is confirmed
+node/node.hpp:187:	// We were contacted by endpoint, update peers
+node/node.hpp:189:	// Unassigned, reserved, self
+node/node.hpp:191:	// Returns true if peer was already known
+node/node.hpp:193:	// Notify of peer we received from
+node/node.hpp:197:	// Request a list of the top known representatives
+node/node.hpp:199:	// List of all peers
+node/node.hpp:202:	// A list of random peers with size the square root of total peer count
+node/node.hpp:204:	// Get the next peer for attempting bootstrap
+node/node.hpp:206:	// Purge any peer where last_contact < time_point and return what was left
+node/node.hpp:211:	// Should we reach out to this endpoint with a keepalive message
+node/node.hpp:235:	// Called when a new peer is observed
+node/node.hpp:238:	// Number of peers to crawl for being a rep every period
+node/node.hpp:257:// These APIs aren't easy to understand so comments are verbose
+node/node.hpp:265:	// Refresh when the lease ends
+node/node.hpp:267:	// Refresh occasionally in case router loses mapping
+node/node.hpp:273:	UPNPDev * devices; // List of all UPnP devices
+node/node.hpp:274:	UPNPUrls urls; // Something for UPnP
+node/node.hpp:275:	IGDdatas data; // Some other UPnP thing
+node/node.hpp:276:	// Primes so they infrequently happen at the same time
+node/node.hpp:299:// This class tracks blocks that are probably live because they arrived in a UDP packet
+node/node.hpp:300:// This gives a fairly reliable way to differentiate between blocks being inserted via bootstrap or new, live blocks.
+node/node.hpp:477:// The network is crawled for representatives by occasionally sending a unicast confirm_req for a specific block 
+node/node.hpp:478:// and watching to see if it's acknowledged with a vote.
+node/node.hpp:479:// //通过偶尔为特定块发送单播的confirm_req，可以爬行代表网络
+node/node.hpp:480:// 478 //然后观察是否通过投票确认。
+node/node.hpp:490:// Processing blocks is a potentially long IO operation
+node/node.hpp:491://处理块是一个潜在的长IO操作
+node/node.hpp:492:// This class isolates block insertion from other operations like servicing network operations
+node/node.hpp:493:// 这个类将块插入与其他操作(如服务网络操作)隔离开来
+node/node.cpp:195:	// If we're a representative, broadcast a signed confirm, otherwise an unsigned publish
+node/node.cpp:207:			BOOST_LOG (node.log) << "sendactio6666"; //广播
+node/node.cpp:224:// In order to rate limit network traffic we republish:
+node/node.cpp:225:// 1) Only if they are a non-replay vote of a block that's actively settling. Settling blocks are limited by block PoW
+node/node.cpp:226:// 2) The rep has a weight > Y to prevent creating a lot of small-weight accounts to send out votes
+node/node.cpp:227:// 3) Only if a vote for this block from this representative hasn't been received in the previous X second.
+node/node.cpp:228://    This prevents rapid publishing of votes with increasing sequence numbers.
+node/node.cpp:229://
+node/node.cpp:230:// These rules are implemented by the caller, not this function.
+node/node.cpp:342:	void keepalive (rai::keepalive const & message_a) override //心跳
+node/node.cpp:352:	void publish (rai::publish const & message_a) override//接收消息
+node/node.cpp:363:	void confirm_req (rai::confirm_req const & message_a) override//双花投票结果确认？
+node/node.cpp:380:	void confirm_ack (rai::confirm_ack const & message_a) override//广播？？？
+node/node.cpp:393:			// This tries to assist rep nodes that have lost track of their highest sequence number by replaying our highest known vote back to them
+node/node.cpp:394:			// Only do this if the sequence number is significantly different to account for network reordering
+node/node.cpp:395:			// Amplify attack considerations: We're sending out a confirm_ack in response to a confirm_ack for no net traffic increase
+node/node.cpp:525:// Send keepalives to all the peers we've been notified of
+node/node.cpp:1272:			if (force) //投票回滚
+node/node.cpp:1277:					// Replace our block with the winner and roll back any dependent blocks
+node/node.cpp:1412:				// Only let the bootstrap attempt know about forked blocks that did not arrive via UDP.
+node/node.cpp:1541:										//req->prepare (*req);
+node/node.cpp:1542:										//boost::beast::http::prepare(req);
+node/node.cpp:1625:				// We see a valid non-replay vote for a block we requested, this node is probably a representative
+node/node.cpp:1629:					// Rebroadcasting all active votes to new representative
+node/node.cpp:1653:			// Store was empty meaning we just created it, add the genesis block
+node/node.cpp:1829:// Simulating with sqrt_broadcast_simulate shows we only need to broadcast to sqrt(total_peers) random peers in order to successfully publish to everyone with high probability
+node/node.cpp:2089:		// Re-attempt bootstrapping more aggressively on startup
+node/node.cpp:2378:	unsigned int backoff; // in seconds
+node/node.cpp:2537:			// underflow
+node/node.cpp:2550:			// overflow
+node/node.cpp:2602:	// Stop trying to fill result with random samples after this many attempts
+node/node.cpp:2605:	// Usually count_a will be much smaller than peers.size()
+node/node.cpp:2606:	// Otherwise make sure we have a cutoff on attempting to randomly fill
+node/node.cpp:2615:	// Fill the remainder with most recent contact
+node/node.cpp:2639:// Request a list of the top known representatives
+node/node.cpp:2662:		// Remove peers that haven't been heard from past the cutoff
+node/node.cpp:2669:		// Remove keepalive attempt tracking for attempts older than cutoff
+node/node.cpp:2762:	// Don't contact invalid IPs
+node/node.cpp:2766:		// Don't keepalive to nodes that already sent us something
+node/node.cpp:2985:	// Threshold over which unanimous voting implies confirmation
+node/node.cpp:2991:	// Minimum number of votes needed to change our ledger, under which we're probably disconnected //fixme
+node/node.cpp:2992:	// 更改我们的总账所需的最小票数，在此基础上我们可能会失去联系//之前的判断都已经大于百分之五十一了，这个没必要。。
+node/node.cpp:3066:	// see republish_vote documentation for an explanation of these rules
+node/node.cpp:3074:		if (weight < supply / 100) // 0.1% to 1%
+node/node.cpp:3078:		else if (weight < supply / 20) // 1% to 5%
+node/node.cpp:3082:		else // 5% or above
+node/node.cpp:3128:		// Announce our decision for up to `announcements_per_interval' conflict,//宣布投票结果s
+node/node.cpp:3136:				// These blocks have reached the confirmation interval for forks
+node/node.cpp:3152:				// If more than one full announcement interval has passed and no one has voted on this block, we need to synchronize
+node/node.cpp:3182:						// broadcast_confirm_req_base modifies reps, so we clone it once to avoid aliasing
+node/node.cpp:3189:		// Mark remainder as 0 announcements sent
+node/node.cpp:3190:		// This could happen if there's a flood of forks, the network will resolve them in increasing root hash order
+node/node.cpp:3191:		// This is a DoS protection mechanism to rate-limit the amount of traffic for solving forks.
+node/node.cpp:3194:			// Reset announcement count for conflicts above announcement cutoff
+node/node.cpp:3247:// Validate a vote and apply it to the current election if one exists
+node/node.cpp:3274:// List of active blocks in elections
+node/node.cpp:3332:	// clang-format off
+node/node.cpp:3359:	// clang-format on
+node/node.cpp:3451:			// Scope the node so the mdb environment gets cleaned up properly before
+node/node.cpp:3452:			// the original file is replaced with the vacuumed file.
+node/node.cpp:3461:				// Note that these throw on failure
+node/node.cpp:4059:		// Intentionally omitted: we don't map the RPC port because, unless RPC authentication was added, this would almost always be a security risk
+node/node.cpp:4133:		// If the mapping is lost, refresh it
+node/node.cpp:4165:			// Be a good citizen for the router and shut down our mapping
+node/wallet.hpp:15:// The fan spreads a key out over the heap to decrease the likelihood of it being recovered by memory inspection
+node/wallet.hpp:122:// A wallet is a set of account keys encrypted by a common encryption key
+node/wallet.hpp:162:// The wallets set is all the wallets a node controls.  A node may contain multiple wallets independently encrypted and operated.
+node/xorshift.hpp:22:		s1 ^= s1 << 31; // a
+node/xorshift.hpp:23:		s1 ^= s1 >> 11; // b
+node/xorshift.hpp:24:		s0 ^= s0 >> 30; // c
+node/rpc.cpp:864:	auto genesis_balance (node.balance (rai::genesis_account)); // Cold storage genesis
+node/rpc.cpp:865:	auto landing_balance (node.balance (rai::account ("059F68AAB29DE0D3A27443625C7EA9CDDB6517A8B76FE37727EF6A4D76832AD5"))); // Active unavailable account
+node/rpc.cpp:866:	auto faucet_balance (node.balance (rai::account ("8E319CE6F3025E5B2DF66DA7AB1467FE48F1679C13DD43BFDB29FA2E9FC40D3B"))); // Faucet account
+node/rpc.cpp:867:	auto burned_balance ((node.balance_pending (rai::account (0))).second); // Burning 0 account
+node/rpc.cpp:1208:			// Retrieve link from source or destination
+node/rpc.cpp:1215:			// Fetching account balance & previous for send blocks (if aren't given directly)
+node/rpc.cpp:1222:			// Double check current balance if previous block is specified
+node/rpc.cpp:1231:			// Check for incorrect account key
+node/rpc.cpp:1692:			// Report opens as a receive
+node/rpc.cpp:1956:		if (!sorting) // Simple
+node/rpc.cpp:1993:		else // Sorting
+node/rpc.cpp:2594:					// TODO once we get RPC versioning, this should be changed to "negative spend"
+node/rpc.cpp:2848:	if (!sorting) // Simple
+node/rpc.cpp:2857:	else // Sorting
+node/rpc.cpp:2936:				if (sources != 0) // Republish source chain
+node/rpc.cpp:2957:				node.network.republish_block (transaction, std::move (block)); // Republish block
+node/rpc.cpp:2961:				if (destinations != 0) // Republish destination chain
+node/rpc.cpp:2999:			response_l.put ("success", ""); // obsolete
+node/rpc.cpp:3097:								rai::transaction transaction (node.store.environment, nullptr, work != 0); // false if no "work" in request, true if work > 0
+node/rpc.cpp:4439:		// Guards `res' from being clobbered while async_write is being serviced
+node/rpc.cpp:4703:			// Processed before logging
+node/rpc.cpp:4707:			// Processed before logging
+node/rpc.cpp:4891:			// Processed before logging
+node/rpc.hpp:56:	nothing, // Timeout and nothing was received
+node/rpc.hpp:57:	//insufficient, // Timeout and not enough was received
+node/rpc.hpp:58:	//over, // More than requested received
+node/rpc.hpp:59:	//success_fork, // Amount received but it involved a fork
+node/rpc.hpp:60:	success // Amount received
+node/utility.cpp:47:		// lmdb creates a -lock suffixed file for its MDB_NOSUBDIR databases
+node/utility.cpp:71:			auto status3 (mdb_env_set_mapsize (environment, 1ULL * 1024 * 1024 * 1024 * 1024)); // 1 Terabyte
+node/utility.cpp:73:			// It seems if there's ever more threads than mdb_env_set_maxreaders has read slots available, we get failures on transaction creation unless MDB_NOTLS is specified
+node/utility.cpp:74:			// This can happen if something like 256 io_threads are specified in the node config
+node/utility.cpp:149:	// Allow passing a temporary to a non-c++ function which doesn't have constness
+node/utility.hpp:25:// OS-specific way of finding a path to a home directory.
+node/utility.hpp:30:// Remove all unique tmp directories created by the process. The list of unique paths are returned.
+node/utility.hpp:32:// C++ stream are absolutely horrible so I need this helper function to do the most basic operation of creating a file if it doesn't exist or truncating it.
+node/utility.hpp:34:// Reads a json object from the stream and if was changed, write the object back to the stream
+node/utility.hpp:61:// Reads a json object from the stream and if was changed, write the object back to the stream
+node/bootstrap.hpp:37:	// Return true if target already has block
+node/bootstrap.hpp:41:	// return true if all dependencies are synchronized
+node/openclwork.cpp:27:	uchar  digest_length; // 1
+node/openclwork.cpp:28:	uchar  key_length;    // 2
+node/openclwork.cpp:29:	uchar  fanout;        // 3
+node/openclwork.cpp:30:	uchar  depth;         // 4
+node/openclwork.cpp:31:	uint leaf_length;   // 8
+node/openclwork.cpp:32:	ulong node_offset;   // 16
+node/openclwork.cpp:33:	uchar  node_depth;    // 17
+node/openclwork.cpp:34:	uchar  inner_length;  // 18
+node/openclwork.cpp:35:	uchar  reserved[14];  // 32
+node/openclwork.cpp:36:	uchar  salt[BLAKE2B_SALTBYTES]; // 48
+node/openclwork.cpp:37:	uchar  personal[BLAKE2B_PERSONALBYTES];  // 64
+node/openclwork.cpp:300:	  ucharcpy( S->buf + left, in, fill ); // Fill buffer
+node/openclwork.cpp:303:	  blake2b_compress( S, S->buf ); // Compress
+node/openclwork.cpp:304:	  ucharcpy( S->buf, S->buf + BLAKE2B_BLOCKBYTES, BLAKE2B_BLOCKBYTES ); // Shift buffer left
+node/openclwork.cpp:309:	else // inlen <= fill
+node/openclwork.cpp:312:	  S->buflen += inlen; // Be lazy, do not compress
+node/openclwork.cpp:334:  //blake2b_increment_counter( S, S->buflen );
+node/openclwork.cpp:337://  if ( S->t[0] < inc )
+node/openclwork.cpp:338://    S->t[1] += 1;
+node/openclwork.cpp:339:  // This seems to crash the opencl compiler though fortunately this is calculating size and we don't do things bigger than 2^32
+node/openclwork.cpp:375:	//if (result >= 0xff00000000000000ul)
+node/openclwork.cpp:395:		// print x as an integer, not as a char
+node/bootstrap.cpp:63:			// Might not be a dependency block (if this is a send) but that's okay
+node/bootstrap.cpp:76:			// Block is already synchronized, normal
+node/bootstrap.cpp:112:	// Blocks that depend on multiple paths e.g. receive_blocks, need to have their dependencies recalculated each time
+node/bootstrap.cpp:124:		// A block that can be the dependency of more than one other block, e.g. send blocks, can be added to the dependency list more than once.  Subsequent retrievals won't find the block but this isn't an error
+node/bootstrap.cpp:260:					case 995: //Windows The I/O operation has been aborted because of either a thread exit or an application request
+node/bootstrap.cpp:261:					case 10061: //Windows No connection could be made because the target machine actively refused it
+node/bootstrap.cpp:325:		// An issue with asio is that sometimes, instead of reporting a bad file descriptor during disconnect,
+node/bootstrap.cpp:326:		// we simply get a size of 0.
+node/bootstrap.cpp:383:		if (!account.is_zero ()) //有需要接收的继续接收，
+node/bootstrap.cpp:385:			while (!current.is_zero () && current < account) //这个判断条件懵逼
+node/bootstrap.cpp:387:				// We know about an account they don't.
+node/bootstrap.cpp:402:						// In sync
+node/bootstrap.cpp:408:							// We know about a block they don't.
+node/bootstrap.cpp:439:					// We know about an account they don't.
+node/bootstrap.cpp:450:					promise.set_value (false);//没有需要接收的就通知其他线程，同步完毕
+node/bootstrap.cpp:455:				connection->attempt->pool_connection (connection); //唤醒其他线程
+node/bootstrap.cpp:493:	// If received end block is not expected end block
+node/bootstrap.cpp:620:			// Avoid re-using slow peers, or peers that sent the wrong blocks.
+node/bootstrap.cpp:833:	node->bootstrap_initiator.notify_listeners (true);   //fixme
+node/bootstrap.cpp:899:		// The bulk_pull_client destructor attempt to requeue_pull which can cause a deadlock if this is the last reference
+node/bootstrap.cpp:900:		// Dispatch request in an external thread in case it needs to be destroyed
+node/bootstrap.cpp:954:	// Shuffle pulls.
+node/bootstrap.cpp:973:		// Flushing may resolve forks which can add more pulls
+node/bootstrap.cpp:1075:	// Only scale up to bootstrap_connections_max for large pulls.
+node/bootstrap.cpp:1100:				// Force-stop the slowest peers, since they can take the whole bootstrap hostage by dribbling out blocks on the last remaining pull.
+node/bootstrap.cpp:1101:				// This is ~1.5kilobits/sec.
+node/bootstrap.cpp:1117:	// We only want to drop slow peers when more than 2/3 are active. 2/3 because 1/2 is too aggressive, and 100% rarely happens.
+node/bootstrap.cpp:1118:	// Probably needs more tuning.
+node/bootstrap.cpp:1121:		// 4 -> 1, 8 -> 2, 16 -> 4, arbitrary, but seems to work well.
+node/bootstrap.cpp:1153:		// TODO - tune this better
+node/bootstrap.cpp:1154:		// Not many peers respond, need to try to make more connections than we need.
+node/wallet.cpp:253:// Wallet version number
+node/wallet.cpp:255:// Random number used to salt private key encryption
+node/wallet.cpp:257:// Key used to encrypt wallet keys, encrypted itself by the user password
+node/wallet.cpp:259:// Check value used to see if password is valid
+node/wallet.cpp:261:// Representative account to be used if we open a new account
+node/wallet.cpp:263:// Wallet seed for deterministic key generation
+node/wallet.cpp:265:// Current key index for deterministic keys
+node/wallet.cpp:345:			// Wallet key is a fixed random key that encrypts all entries
+node/wallet.cpp:353:			// Wallet key is encrypted by the user's password
+node/wallet.cpp:500:					// Ad-hoc keys
+node/wallet.cpp:656:			// Key failed to decrypt despite valid password
+node/wallet.cpp:663:				// If we successfully decrypted it, rewrite the key back with the correct wallet key
+node/wallet.cpp:668:				// Also try the empty password
+node/wallet.cpp:675:					// If we successfully decrypted it, rewrite the key back with the correct wallet key
+node/wallet.cpp:727:			// Newly created wallets have a zero key
+node/wallet.cpp:899:				// Ledger doesn't have this marked as available to receive anymore
+node/wallet.cpp:904:			// Ledger doesn't have this block anymore.
+node/wallet.cpp:910:		// Someone sent us something below the threshold of receiving
+node/wallet.cpp:1121:	//assert (dynamic_cast<rai::send_block *> (block_a.get ()) != nullptr);
+node/wallet.cpp:1164:// Fetch work for root_a, use cached value if possible
+node/wallet.cpp:1208:			// Don't search pending for watch-only accounts
+node/wallet.cpp:1242:								// If there were any forks for this account they've been rolled back and we can receive anything remaining from this account
+node/wallet.cpp:1336:		// Check if account received at least 1 block
+node/wallet.cpp:1341:			// i + 64 - Check additional 64 accounts
+node/wallet.cpp:1342:			// i/64 - Check additional accounts for large wallets. I.e. 64000/64 = 1000 accounts to check
+node/wallet.cpp:1347:			// Check if there are pending blocks for account
+node/wallet.cpp:1359:		// Generate work for first 4 accounts only to prevent weak CPU nodes stuck
+node/wallet.cpp:1395:		for (rai::store_iterator i (transaction, handle, rai::mdb_val (beginning.size (),//这个N是什么玩意语法
+node/wallet.cpp:1413:				// Couldn't open wallet
+qt/qt.cpp:472:	//	layout->addWidget (tx_window);
+qt/qt.cpp:1442:			// lock wallet
+qt/qt.cpp:1452:			// try to unlock wallet
+qt/qt.cpp:1469:						// if wallet is still not unlocked by now, change button text
+qt/qt.cpp:1481:	// initial state for lock toggle button
+rai_node/entry.cpp:15:	// clang-format off
+rai_node/entry.cpp:34:	// clang-format on
+tags:4:!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+tags:5:!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+tags:6:!_TAG_PROGRAM_VERSION	5.9~svn20110310	//

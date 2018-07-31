@@ -64,6 +64,7 @@ public:
 	{
 		CryptoPP::AutoSeededRandomPool random_pool;
 		// Randomly generating these mean no two nodes will ever have the same sentinel values which protects against some insecure algorithms
+		// 随机生成这些节点意味着没有两个节点具有相同的前哨值，这可以防止一些不安全的算法
 		random_pool.GenerateBlock (not_a_block.bytes.data (), not_a_block.bytes.size ());
 		random_pool.GenerateBlock (not_an_account.bytes.data (), not_an_account.bytes.size ());
 	}
@@ -120,11 +121,12 @@ rai::tally_result rai::votes::vote (std::shared_ptr<rai::vote> vote_a)
 	if (existing == rep_votes.end ())
 	{
 		// Vote on this block hasn't been seen from rep before
+		// 还没对该块进行过投票
 		result = rai::tally_result::vote;
 		rep_votes.insert (std::make_pair (vote_a->account, vote_a->block));
 	}
 	else
-	{
+	{//当前写入的块和投票确认结果对比
 		if (!(*existing->second == *vote_a->block))
 		{
 			// Rep changed their vote

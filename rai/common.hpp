@@ -49,6 +49,7 @@ public:
 
 /**
  * Determine the amount delta resultant from this block
+ * 确定从这个块中获取交易量
  */
 class amount_visitor : public rai::block_visitor
 {
@@ -70,6 +71,7 @@ public:
 
 /**
  * Determine the representative for this block
+ * 获取快中代表
  */
 class representative_visitor : public rai::block_visitor
 {
@@ -91,6 +93,8 @@ public:
 /**
  * A key pair. The private key is generated from the random pool, or passed in
  * as a hex string. The public key is derived using ed25519.
+ * *一个密钥对。私钥由随机池生成，或传入
+ * *作为十六进制字符串。公钥使用ed25519派生。
  */
 class keypair
 {
@@ -105,6 +109,7 @@ std::unique_ptr<rai::block> deserialize_block (MDB_val const &);
 
 /**
  * Latest information about an account
+ * 账户最新的信息
  */
 class account_info
 {
@@ -195,18 +200,20 @@ public:
 	void serialize (rai::stream &);
 	std::string to_json () const;
 	// Vote round sequence number
+	// 投票的序列号
 	uint64_t sequence;
 	std::shared_ptr<rai::block> block;
 	// Account that's voting
 	rai::account account;
 	// Signature of sequence + block hash
+	// 还对（序列号和块hash）进行签名
 	rai::signature signature;
 };
 enum class vote_code
 {
-	invalid, // Vote is not signed correctly
-	replay, // Vote does not have the highest sequence number, it's a replay
-	vote // Vote has the highest sequence number
+	invalid, // Vote is not signed correctly,无效签名
+	replay, // Vote does not have the highest sequence number, it's a replay，投票没有最高的序列号，这是重播
+	vote // Vote has the highest sequence number，最高序列的投票
 };
 class vote_result
 {
@@ -217,20 +224,20 @@ public:
 
 enum class process_result
 {
-	progress, // Hasn't been seen before, signed correctly
-	bad_signature, // Signature was bad, forged or transmission error
-	old, // Already seen and was valid
-	negative_spend, // Malicious attempt to spend a negative amount
-	fork, // Malicious fork based on previous
-	unreceivable, // Source block doesn't exist or has already been received
-	gap_previous, // Block marked as previous is unknown
-	gap_source, // Block marked as source is unknown
-	state_block_disabled, // Awaiting state block canary block
-	not_receive_from_send, // Receive does not have a send source
-	account_mismatch, // Account number in open block doesn't match send destination
-	opened_burn_account, // The impossible happened, someone found the private key associated with the public key '0'.
-	balance_mismatch, // Balance and amount delta don't match
-	block_position // This block cannot follow the previous block
+	progress, // Hasn't been seen before, signed correctly,OK块
+	bad_signature, // Signature was bad, forged or transmission error，无效的签名
+	old, // Already seen and was valid，之前存在的有效块
+	negative_spend, // Malicious attempt to spend a negative amount,恶意企图花费一个负数金额
+	fork, // Malicious fork based on previous,双花
+	unreceivable, // Source block doesn't exist or has already been received，源块不存在，或者已经被接收过了
+	gap_previous, // Block marked as previous is unknown,,间隙块，找不到前区块
+	gap_source, // Block marked as source is unknown,再数据库没有找到发送方的源区块
+	state_block_disabled, // Awaiting state block canary block，没有打开能state块的权限
+	not_receive_from_send, // Receive does not have a send source，打包接收块没有发送方？
+	account_mismatch, // Account number in open block doesn't match send destination，open块中的账户和发送方的目标地址不一致
+	opened_burn_account, // The impossible happened, someone found the private key associated with the public key '0'.销毁账号被破解出私钥的特殊处理
+	balance_mismatch, // Balance and amount delta don't match，余额和发送量不一致
+	block_position // This block cannot follow the previous block，该块不能链接到前区块下,除了open块其他都允许返回true
 };
 class process_return
 {
@@ -253,9 +260,9 @@ public:
 	votes (std::shared_ptr<rai::block>);
 	rai::tally_result vote (std::shared_ptr<rai::vote>);
 	bool uncontested ();
-	// Root block of fork
+	// Root block of fork,分叉双花前的块hash
 	rai::block_hash id;
-	// All votes received by account
+	// All votes received by account，账户接收的所有选票
 	std::unordered_map<rai::account, std::shared_ptr<rai::block>> rep_votes;
 };
 extern rai::keypair const & zero_key;
@@ -270,9 +277,11 @@ extern std::string const & genesis_block;
 extern rai::account const & genesis_account;
 extern rai::account const & burn_account;
 extern rai::uint128_t const & genesis_amount;
-// A block hash that compares inequal to any real block hash
+// A block hash that compares inequal to any real block
+// 在表中没找到该块hash
 extern rai::block_hash const & not_a_block;
 // An account number that compares inequal to any real account number
+// 表中没该账户
 extern rai::block_hash const & not_an_account;
 class genesis
 {

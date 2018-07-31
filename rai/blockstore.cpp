@@ -6,6 +6,7 @@ namespace
 {
 /**
  * Fill in our predecessors
+ * 填充前区块hash
  */
 class set_predecessor : public rai::block_visitor
 {
@@ -39,6 +40,7 @@ public:
 	void open_block (rai::open_block const & block_a) override
 	{
 		// Open blocks don't have a predecessor
+		// open 块没有前区块
 	}
 	void change_block (rai::change_block const & block_a) override
 	{
@@ -498,6 +500,7 @@ void rai::block_store::upgrade_v8_to_v9 (MDB_txn * transaction_a)
 		uint64_t sequence;
 		auto error (rai::read (stream, sequence));
 		// Create a dummy vote with the same sequence number for easy upgrading.  This won't have a valid signature.
+		// 创建一个具有相同序列号的虚拟投票，以便轻松升级。它没有有效的签名。
 		auto dummy (std::make_shared<rai::vote> (rai::account (i->first.uint256 ()), junk.prv, sequence, block));
 		std::vector<uint8_t> vector;
 		{

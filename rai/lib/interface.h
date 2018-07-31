@@ -11,6 +11,7 @@ typedef unsigned char * xrb_uint512; // 64byte array for signatures
 typedef void * xrb_transaction;
 
 // Convert amount bytes 'source' to a 39 byte not-null-terminated decimal string 'destination'
+//文件应该是针对test
 void xrb_uint128_to_dec (const xrb_uint128 source, char * destination);
 // Convert public/private key bytes 'source' to a 64 byte not-null-terminated hex string 'destination'
 void xrb_uint256_to_string (const xrb_uint256 source, char * destination);

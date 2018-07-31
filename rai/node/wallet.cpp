@@ -253,16 +253,22 @@ unsigned const rai::wallet_store::version_current (version_3);
 // Wallet version number
 rai::uint256_union const rai::wallet_store::version_special (0);
 // Random number used to salt private key encryption
+// 用于加密加密的随机数字。
 rai::uint256_union const rai::wallet_store::salt_special (1);
 // Key used to encrypt wallet keys, encrypted itself by the user password
+// key用于加密钱包密钥，通过用户密码对其进行加密。
 rai::uint256_union const rai::wallet_store::wallet_key_special (2);
 // Check value used to see if password is valid
+// 检查用于查看密码是否有效的值
 rai::uint256_union const rai::wallet_store::check_special (3);
 // Representative account to be used if we open a new account
+//
 rai::uint256_union const rai::wallet_store::representative_special (4);
 // Wallet seed for deterministic key generation
+// 确定密钥生成的钱包种子。
 rai::uint256_union const rai::wallet_store::seed_special (5);
 // Current key index for deterministic keys
+// 确定键的当前键索引
 rai::uint256_union const rai::wallet_store::deterministic_index_special (6);
 int const rai::wallet_store::special_count (7);
 
@@ -343,6 +349,7 @@ environment (transaction_a.environment)
 			random_pool.GenerateBlock (salt_l.bytes.data (), salt_l.bytes.size ());
 			entry_put_raw (transaction_a, rai::wallet_store::salt_special, rai::wallet_value (salt_l, 0));
 			// Wallet key is a fixed random key that encrypts all entries
+			// 钱包密钥是一个固定的随机密钥，对所有条目进行加密
 			rai::raw_key wallet_key;
 			random_pool.GenerateBlock (wallet_key.data.bytes.data (), sizeof (wallet_key.data.bytes));
 			rai::raw_key password_l;
@@ -908,6 +915,7 @@ std::shared_ptr<rai::block> rai::wallet::receive_action (rai::block const & send
 	{
 		BOOST_LOG (node.log) << boost::str (boost::format ("Not receiving block %1% due to minimum receive threshold") % hash.to_string ());
 		// Someone sent us something below the threshold of receiving
+		// 有人寄给我们一些低于接收门槛的mol
 	}
 	if (block != nullptr)
 	{
@@ -1206,6 +1214,7 @@ public:
 		for (auto i (wallet_a->store.begin (transaction_a)), n (wallet_a->store.end ()); i != n; ++i)
 		{
 			// Don't search pending for watch-only accounts
+			// 不要搜索余额只监视的帐户
 			if (!rai::wallet_value (i->second).key.is_zero ())
 			{
 				keys.insert (i->first.uint256 ());
@@ -1240,6 +1249,7 @@ public:
 							rai::transaction transaction (this_l->wallet->node.store.environment, nullptr, true);
 							this_l->wallet->node.active.start (transaction, block_l, [this_l, account](std::shared_ptr<rai::block>, bool) {
 								// If there were any forks for this account they've been rolled back and we can receive anything remaining from this account
+								// 如果这个帐户有任何双花，他们已经回滚，我们可以收到任何剩余的这个帐户
 								this_l->receive_all (account);
 							});
 							this_l->wallet->node.network.broadcast_confirm_req (block_l);

@@ -53,12 +53,16 @@ public:
 	// Check if we have vote quorum
 	bool have_quorum (MDB_txn *);
 	// Tell the network our view of the winner
+	//广播网络分叉结果
 	void broadcast_winner ();
 	// Change our winner to agree with the network
+	// 改变我们的赢家同意网络
 	void compute_rep_votes (MDB_txn *);
 	// Confirmation method 1, uncontested quorum
+	// 确认方法1，无争议的仲裁
 	void confirm_if_quorum (MDB_txn *);
 	// Confirmation method 2, settling time
+	// 确认方法2，确定时间
 	void confirm_cutoff (MDB_txn *);
 	rai::uint128_t quorum_threshold (MDB_txn *, rai::ledger &);
 	rai::uint128_t minimum_threshold (MDB_txn *, rai::ledger &);
@@ -74,24 +78,32 @@ public:
 	rai::block_hash root;
 	std::shared_ptr<rai::election> election;
 	// Number of announcements in a row for this fork
+	// 用于此fork的一行的通知数。
 	unsigned announcements;
 	std::pair<std::shared_ptr<rai::block>, std::shared_ptr<rai::block>> confirm_req_options;
 };
 // Core class for determining consensus
+// 确定共识的核心阶层
 // Holds all active blocks i.e. recently added blocks that need confirmation
+// 保存所有活动块，例如最近添加的需要确认的块
 class active_transactions
 {
 public:
 	active_transactions (rai::node &);
 	// Start an election for a block
+	// 开始一个块得投票
 	// Call action with confirmed block, may be different than what we started with
+	// 使用确认块调用操作，可能与我们开始时不同
 	bool start (MDB_txn *, std::shared_ptr<rai::block>, std::function<void(std::shared_ptr<rai::block>, bool)> const & = [](std::shared_ptr<rai::block>, bool) {});
 	// Also supply alternatives to block, to confirm_req reps with if the boolean argument is true
+	// 如果布尔参数为真，还可以为confirm_req的代表提供块的替代选项
 	// Should only be used for old elections
+	// 仅仅适用于旧版本选举？
 	// The first block should be the one in the ledger
 	bool start (MDB_txn *, std::pair<std::shared_ptr<rai::block>, std::shared_ptr<rai::block>>, std::function<void(std::shared_ptr<rai::block>, bool)> const & = [](std::shared_ptr<rai::block>, bool) {});
 	// If this returns true, the vote is a replay
 	// If this returns false, the vote may or may not be a replay
+	// 为真是重播，为假可能是重播也可能不是
 	bool vote (std::shared_ptr<rai::vote>);
 	// Is the root of this block in the roots container
 	bool active (rai::block const &);
@@ -107,8 +119,10 @@ public:
 	rai::node & node;
 	std::mutex mutex;
 	// Maximum number of conflicts to vote on per interval, lowest root hash first
+	// 每个区间上要投票的最大冲突数，首先是最小的根哈希
 	static unsigned constexpr announcements_per_interval = 32;
 	// After this many successive vote announcements, block is confirmed
+	//
 	static unsigned constexpr contiguous_announcements = 4;
 	static unsigned constexpr announce_interval_ms = (rai::rai_network == rai::rai_networks::rai_test_network) ? 10 : 16000;
 	static size_t constexpr election_history_size = 2048;
@@ -185,12 +199,15 @@ class peer_container
 public:
 	peer_container (rai::endpoint const &);
 	// We were contacted by endpoint, update peers
+	// 被节点联系,记录更新节点数
 	void contacted (rai::endpoint const &, unsigned);
 	// Unassigned, reserved, self
+	// 
 	bool not_a_peer (rai::endpoint const &);
 	// Returns true if peer was already known
 	bool known_peer (rai::endpoint const &);
 	// Notify of peer we received from
+	//收到得来自哪里得通知,更新最后一次得联系时间
 	bool insert (rai::endpoint const &, unsigned);
 	std::unordered_set<rai::endpoint> random_set (size_t);
 	void random_fill (std::array<rai::endpoint, 8> &);
@@ -204,11 +221,13 @@ public:
 	// Get the next peer for attempting bootstrap
 	rai::endpoint bootstrap_peer ();
 	// Purge any peer where last_contact < time_point and return what was left
+	// 清除last_contact < time_point所在的任何对等点，并返回剩下的内容
 	std::vector<rai::peer_information> purge_list (std::chrono::steady_clock::time_point const &);
 	std::vector<rai::endpoint> rep_crawl ();
 	bool rep_response (rai::endpoint const &, rai::account const &, rai::amount const &);
 	void rep_request (rai::endpoint const &);
 	// Should we reach out to this endpoint with a keepalive message
+	// 我们是否应该向这个端点发送一个keepalive消息
 	bool reachout (rai::endpoint const &);
 	size_t size ();
 	size_t size_sqrt ();
@@ -233,9 +252,11 @@ public:
 	boost::multi_index::ordered_non_unique<boost::multi_index::member<peer_attempt, std::chrono::steady_clock::time_point, &peer_attempt::last_attempt>>>>
 	attempts;
 	// Called when a new peer is observed
+	// 当发现一个新节点通知下自己
 	std::function<void(rai::endpoint const &)> peer_observer;
 	std::function<void()> disconnect_observer;
 	// Number of peers to crawl for being a rep every period
+	// fixme??抓取每个时期节点中将要成为代表节点得数量
 	static size_t constexpr peers_per_crawl = 8;
 };
 class send_info
@@ -255,6 +276,7 @@ public:
 	uint16_t external_port;
 };
 // These APIs aren't easy to understand so comments are verbose
+// 这些api不容易理解，所以注释很冗长
 class port_mapping
 {
 public:
@@ -263,8 +285,10 @@ public:
 	void stop ();
 	void refresh_devices ();
 	// Refresh when the lease ends
+	// 使用结束时候更新
 	void refresh_mapping ();
 	// Refresh occasionally in case router loses mapping
+	// 如果路由器丢失映射，偶尔刷新一次
 	void check_mapping_loop ();
 	int check_mapping ();
 	bool has_address ();
@@ -274,6 +298,7 @@ public:
 	UPNPUrls urls; // Something for UPnP
 	IGDdatas data; // Some other UPnP thing
 	// Primes so they infrequently happen at the same time
+	//
 	static int constexpr mapping_timeout = rai::rai_network == rai::rai_networks::rai_test_network ? 53 : 3593;
 	static int constexpr check_timeout = rai::rai_network == rai::rai_networks::rai_test_network ? 17 : 53;
 	boost::asio::ip::address_v4 address;
@@ -298,6 +323,8 @@ public:
 };
 // This class tracks blocks that are probably live because they arrived in a UDP packet
 // This gives a fairly reliable way to differentiate between blocks being inserted via bootstrap or new, live blocks.
+// //这个类跟踪可能存在的块，因为它们是用UDP包到达的
+// 325 //这提供了一种相当可靠的方法来区分通过引导程序插入的块或新的活动块。
 class block_arrival
 {
 public:

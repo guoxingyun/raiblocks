@@ -13,6 +13,7 @@
 namespace rai
 {
 // The fan spreads a key out over the heap to decrease the likelihood of it being recovered by memory inspection
+// 将一个键分散到堆上，以减少通过内存检查恢复它的可能性
 class fan
 {
 public:

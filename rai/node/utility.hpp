@@ -23,15 +23,21 @@ namespace rai
 using bufferstream = boost::iostreams::stream_buffer<boost::iostreams::basic_array_source<uint8_t>>;
 using vectorstream = boost::iostreams::stream_buffer<boost::iostreams::back_insert_device<std::vector<uint8_t>>>;
 // OS-specific way of finding a path to a home directory.
+// 查找到主目录的路径的操作系统特定的方法。
 boost::filesystem::path working_path ();
 // Get a unique path within the home directory, used for testing.
 // Any directories created at this location will be removed when a test finishes.
+// //在主目录中获取一个惟一的路径，用于测试。
+// 29 //当测试结束时，将删除在此位置创建的任何目录。
 boost::filesystem::path unique_path ();
 // Remove all unique tmp directories created by the process. The list of unique paths are returned.
+// 删除进程创建的所有唯一tmp目录。返回唯一路径的列表。
 std::vector<boost::filesystem::path> remove_temporary_directories ();
 // C++ stream are absolutely horrible so I need this helper function to do the most basic operation of creating a file if it doesn't exist or truncating it.
+//
 void open_or_create (std::fstream &, std::string const &);
 // Reads a json object from the stream and if was changed, write the object back to the stream
+//
 template <typename T>
 bool fetch_object (T & object, std::iostream & stream_a)
 {
@@ -59,6 +65,7 @@ bool fetch_object (T & object, std::iostream & stream_a)
 	return error;
 }
 // Reads a json object from the stream and if was changed, write the object back to the stream
+// 从流中读取json对象，如果更改，则将该对象写入流
 template <typename T>
 bool fetch_object (T & object, boost::filesystem::path const & path_a, std::fstream & stream_a)
 {
@@ -115,6 +122,7 @@ public:
 
 /**
  * Encapsulates MDB_val and provides uint256_union conversion of the data.
+ * 封装MDB_val并提供数据的uint256_union转换。
  */
 class mdb_val
 {
@@ -135,6 +143,8 @@ public:
 /**
  * RAII wrapper of MDB_txn where the constructor starts the transaction
  * and the destructor commits it.
+ * 构造函数启动事务的MDB_txn的RAII包装器
+ * 145 *析构程序提交它。
  */
 class transaction
 {

@@ -2630,7 +2630,6 @@ std::unordered_set<rai::endpoint> rai::peer_container::random_set (size_t count_
 		}
 	}
 	// Fill the remainder with most recent contact
-	// 用最近的接触填充其余部分。
 	for (auto i (peers.get<1> ().begin ()), n (peers.get<1> ().end ()); i != n && result.size () < count_a; ++i)
 	{
 		result.insert (i->endpoint);
@@ -3084,7 +3083,6 @@ bool rai::election::vote (std::shared_ptr<rai::vote> vote_a)
 {
 	assert (!rai::validate_message (vote_a->account, vote_a->hash (), vote_a->signature));
 	// see republish_vote documentation for an explanation of these rules
-	//
 	rai::transaction transaction (node.store.environment, nullptr, false);
 	auto replay (false);
 	auto supply (node.ledger.supply (transaction));
@@ -3171,7 +3169,6 @@ void rai::active_transactions::announce_votes ()
 					announcements = ++info_a.announcements;
 				});
 				// If more than one full announcement interval has passed and no one has voted on this block, we need to synchronize
-				// 如果超过一个完整的公告间隔已经通过，并且没有人对该块进行投票，我们需要同步
 				if (announcements > 1 && i->election->votes.rep_votes.size () <= 1)
 				{
 					node.bootstrap_initiator.bootstrap ();
@@ -3202,7 +3199,6 @@ void rai::active_transactions::announce_votes ()
 					if (!reps->empty ())
 					{
 						// broadcast_confirm_req_base modifies reps, so we clone it once to avoid aliasing
-						//
 						node.network.broadcast_confirm_req_base (i->confirm_req_options.first, std::make_shared<std::vector<rai::peer_information>> (*reps), 0);
 						node.network.broadcast_confirm_req_base (i->confirm_req_options.second, reps, 0);
 					}
@@ -3212,13 +3208,9 @@ void rai::active_transactions::announce_votes ()
 		// Mark remainder as 0 announcements sent
 		// This could happen if there's a flood of forks, the network will resolve them in increasing root hash order
 		// This is a DoS protection mechanism to rate-limit the amount of traffic for solving forks.
-		// //标记余数为发送的0个公告
-		// 如果有大量的分叉，网络将会在增加根哈希顺序的情况下解决这些问题。
-		// 这是一个DoS保护机制，用于限制解决fork的通信量。
 		for (; i != n; ++i)
 		{
 			// Reset announcement count for conflicts above announcement cutoff
-			// 重置公告计数的冲突以上公告截止
 			roots.modify (i, [](rai::conflict_info & info_a) {
 				info_a.announcements = 0;
 			});
@@ -3237,6 +3229,7 @@ void rai::active_transactions::announce_votes ()
 			node_l->active.announce_votes ();
 		}
 	});
+
 		BOOST_LOG (node.log) << "sendaction---1111";
 }
 
@@ -3271,7 +3264,6 @@ bool rai::active_transactions::start (MDB_txn * transaction_a, std::pair<std::sh
 }
 
 // Validate a vote and apply it to the current election if one exists
-// 确认投票，并将其应用于当前的选举(如果存在的话)
 bool rai::active_transactions::vote (std::shared_ptr<rai::vote> vote_a)
 {
 	std::shared_ptr<rai::election> election;
@@ -3477,8 +3469,6 @@ bool rai::handle_node_options (boost::program_options::variables_map & vm)
 
 			// Scope the node so the mdb environment gets cleaned up properly before
 			// the original file is replaced with the vacuumed file.
-			// //确定节点的范围，以便在此之前正确清理mdb环境
-			// //原来的文件被真空的文件所取代。
 			bool success = false;
 			{
 				inactive_node node (data_path);
@@ -4086,7 +4076,6 @@ void rai::port_mapping::refresh_mapping ()
 		auto node_port (std::to_string (node.network.endpoint ().port ()));
 
 		// Intentionally omitted: we don't map the RPC port because, unless RPC authentication was added, this would almost always be a security risk
-		// 故意省略:我们不映射RPC端口，因为除非添加RPC身份验证，否则这几乎总是安全风险
 		for (auto & protocol : protocols)
 		{
 			std::array<char, 6> actual_external_port;
