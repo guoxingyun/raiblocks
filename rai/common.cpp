@@ -197,7 +197,7 @@ block_count (0)
 rai::account_info::account_info (MDB_val const & val_a)
 {
 	assert (val_a.mv_size == sizeof (*this));
-	static_assert (sizeof (head) + sizeof (rep_block) + sizeof (open_block) + sizeof (balance) + sizeof (modified) + sizeof (block_count) == sizeof (*this), "Class not packed");
+//	static_assert (sizeof (head) + sizeof (rep_block) + sizeof (open_block) + sizeof (balance) + sizeof (modified) + sizeof (block_count) == sizeof (*this), "Class not packed");
 	std::copy (reinterpret_cast<uint8_t const *> (val_a.mv_data), reinterpret_cast<uint8_t const *> (val_a.mv_data) + sizeof (*this), reinterpret_cast<uint8_t *> (this));
 }
 
@@ -211,6 +211,20 @@ block_count (block_count_a)
 {
 }
 
+rai::account_info::account_info (rai::block_hash const & head_a, rai::block_hash const & rep_block_a, rai::block_hash const & open_block_a, 
+		rai::amount const & balance_a, uint64_t modified_a, uint64_t block_count_a,uint64_t token_name_a,rai::token_amount const & token_balance_a) :
+head (head_a),
+rep_block (rep_block_a),
+open_block (open_block_a),
+balance (balance_a),
+modified (modified_a),
+block_count (block_count_a),
+token_name (token_name_a),
+token_balance (token_balance_a)
+{
+}
+
+
 void rai::account_info::serialize (rai::stream & stream_a) const
 {
 	write (stream_a, head.bytes);
@@ -220,6 +234,20 @@ void rai::account_info::serialize (rai::stream & stream_a) const
 	write (stream_a, modified);
 	write (stream_a, block_count);
 }
+
+void rai::account_info::token_serialize (rai::stream & stream_a) const
+{
+	write (stream_a, head.bytes);
+	write (stream_a, rep_block.bytes);
+	write (stream_a, open_block.bytes);
+	write (stream_a, balance.bytes);
+	write (stream_a, modified);
+	write (stream_a, block_count);
+	write (stream_a, token_name);
+	write (stream_a, token_balance);
+}
+
+
 
 bool rai::account_info::deserialize (rai::stream & stream_a)
 {
@@ -239,6 +267,36 @@ bool rai::account_info::deserialize (rai::stream & stream_a)
 					if (!error)
 					{
 						error = read (stream_a, block_count);
+					}
+				}
+			}
+		}
+	}
+	return error;
+}
+
+bool rai::account_info::token_deserialize (rai::stream & stream_a)
+{
+	auto error (read (stream_a, head.bytes));
+	if (!error)
+	{
+		error = read (stream_a, rep_block.bytes);
+		if (!error)
+		{
+			error = read (stream_a, open_block.bytes);
+			if (!error)
+			{
+				error = read (stream_a, balance.bytes);
+				if (!error)
+				{
+					error = read (stream_a, modified);
+					if (!error)
+					{
+						error = read (stream_a, token_name);
+						if(!error)
+						{
+							error = read (stream_a, token_balance);	
+						}
 					}
 				}
 			}
@@ -284,7 +342,7 @@ amount (0)
 rai::pending_info::pending_info (MDB_val const & val_a)
 {
 	assert (val_a.mv_size == sizeof (*this));
-	static_assert (sizeof (source) + sizeof (amount) == sizeof (*this), "Packed class");
+	//static_assert (sizeof (source) + sizeof (amount) == sizeof (*this), "Packed class"); tmp_fixme
 	std::copy (reinterpret_cast<uint8_t const *> (val_a.mv_data), reinterpret_cast<uint8_t const *> (val_a.mv_data) + sizeof (*this), reinterpret_cast<uint8_t *> (this));
 }
 
@@ -300,6 +358,13 @@ void rai::pending_info::serialize (rai::stream & stream_a) const
 	rai::write (stream_a, amount.bytes);
 }
 
+void rai::pending_info::token_serialize (rai::stream & stream_a) const
+{
+	rai::write (stream_a, source.bytes);
+	rai::write (stream_a, token_name);
+	rai::write (stream_a, token_amount.bytes);
+}
+
 bool rai::pending_info::deserialize (rai::stream & stream_a)
 {
 	auto result (rai::read (stream_a, source.bytes));
@@ -309,6 +374,22 @@ bool rai::pending_info::deserialize (rai::stream & stream_a)
 	}
 	return result;
 }
+
+bool rai::pending_info::token_deserialize (rai::stream & stream_a)
+{
+	auto result (rai::read (stream_a, source.bytes));
+	if (!result)
+	{
+		result = rai::read (stream_a, token_name);
+		if(!result)
+		{
+			result = rai::read (stream_a, token_amount.bytes);
+		}
+	}
+	return result;
+}
+
+
 
 bool rai::pending_info::operator== (rai::pending_info const & other_a) const
 {

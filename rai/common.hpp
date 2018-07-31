@@ -9,6 +9,8 @@
 
 #include <blake2/blake2.h>
 
+#include <string>
+
 namespace boost
 {
 template <>
@@ -118,8 +120,11 @@ public:
 	account_info (MDB_val const &);
 	account_info (rai::account_info const &) = default;
 	account_info (rai::block_hash const &, rai::block_hash const &, rai::block_hash const &, rai::amount const &, uint64_t, uint64_t);
+	account_info (rai::block_hash const &, rai::block_hash const &, rai::block_hash const &, rai::amount const &, uint64_t, uint64_t,uint64_t,rai::token_amount const &);
 	void serialize (rai::stream &) const;
+	void token_serialize (rai::stream &) const;
 	bool deserialize (rai::stream &);
+	bool token_deserialize (rai::stream &);
 	bool operator== (rai::account_info const &) const;
 	bool operator!= (rai::account_info const &) const;
 	rai::mdb_val val () const;
@@ -130,6 +135,8 @@ public:
 	/** Seconds since posix epoch */
 	uint64_t modified;
 	uint64_t block_count;
+	uint64_t  token_name;
+	rai::token_amount token_balance;
 };
 
 /**
@@ -141,12 +148,17 @@ public:
 	pending_info ();
 	pending_info (MDB_val const &);
 	pending_info (rai::account const &, rai::amount const &);
+	pending_info (rai::account const &, uint64_t, rai::token_amount const &);
 	void serialize (rai::stream &) const;
+	void token_serialize (rai::stream &) const;
 	bool deserialize (rai::stream &);
+	bool token_deserialize (rai::stream &);
 	bool operator== (rai::pending_info const &) const;
 	rai::mdb_val val () const;
 	rai::account source;
 	rai::amount amount;
+	uint64_t  token_name;
+	rai::token_amount token_amount;
 };
 class pending_key
 {

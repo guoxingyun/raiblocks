@@ -861,7 +861,7 @@ bool rai::block_store::account_exists (MDB_txn * transaction_a, rai::account con
 bool rai::block_store::account_get (MDB_txn * transaction_a, rai::account const & account_a, rai::account_info & info_a)
 {
 	rai::mdb_val value;
-	auto status (mdb_get (transaction_a, accounts, rai::mdb_val (account_a), value));
+	auto status (mdb_get (transaction_a, token_accounts, rai::mdb_val (account_a), value));
 	assert (status == 0 || status == MDB_NOTFOUND);
 	bool result;
 	if (status == MDB_NOTFOUND)
@@ -877,6 +877,24 @@ bool rai::block_store::account_get (MDB_txn * transaction_a, rai::account const 
 	return result;
 }
 
+bool rai::block_store::token_account_get (MDB_txn * transaction_a, rai::account const & account_a, rai::account_info & info_a)
+{
+	rai::mdb_val value;
+	auto status (mdb_get (transaction_a, accounts, rai::mdb_val (account_a), value));
+	assert (status == 0 || status == MDB_NOTFOUND);
+	bool result;
+	if (status == MDB_NOTFOUND)
+	{
+		result = true;
+	}
+	else
+	{
+		rai::bufferstream stream (reinterpret_cast<uint8_t const *> (value.data ()), value.size ());
+		result = info_a.token_deserialize (stream);
+		assert (!result);
+	}
+	return result;
+}
 void rai::block_store::frontier_put (MDB_txn * transaction_a, rai::block_hash const & block_a, rai::account const & account_a)
 {
 	auto status (mdb_put (transaction_a, frontiers, rai::mdb_val (block_a), rai::mdb_val (account_a), 0));
@@ -914,6 +932,11 @@ size_t rai::block_store::frontier_count (MDB_txn * transaction_a)
 void rai::block_store::account_put (MDB_txn * transaction_a, rai::account const & account_a, rai::account_info const & info_a)
 {
 	auto status (mdb_put (transaction_a, accounts, rai::mdb_val (account_a), info_a.val (), 0));
+	assert (status == 0);
+}
+void rai::block_store::token_account_put (MDB_txn * transaction_a, rai::account const & account_a, rai::account_info const & info_a)
+{
+	auto status (mdb_put (transaction_a, token_accounts, rai::mdb_val (account_a), info_a.val (), 0));
 	assert (status == 0);
 }
 

@@ -50,6 +50,8 @@ public:
 };
 // Balances are 128 bit.
 using amount = uint128_union;
+
+using token_amount = uint128_union;
 class raw_key;
 union uint256_union
 {

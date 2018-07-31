@@ -70,7 +70,9 @@ public:
 	size_t frontier_count (MDB_txn *);
 
 	void account_put (MDB_txn *, rai::account const &, rai::account_info const &);
+	void token_account_put (MDB_txn *, rai::account const &, rai::account_info const &);
 	bool account_get (MDB_txn *, rai::account const &, rai::account_info &);
+	bool token_account_get (MDB_txn *, rai::account const &, rai::account_info &);
 	void account_del (MDB_txn *, rai::account const &);
 	bool account_exists (MDB_txn *, rai::account const &);
 	rai::store_iterator latest_begin (MDB_txn *, rai::account const &);
