@@ -65,6 +65,20 @@ public:
 			add_dependency (block_a.hashables.link);
 		}
 	}
+	void token_state_block (rai::token_state_block const & block_a) override
+	{
+		if (!block_a.hashables.previous.is_zero ())
+		{
+			add_dependency (block_a.hashables.previous);
+		}
+		if (complete)
+		{
+			// Might not be a dependency block (if this is a send) but that's okay
+			// 可能不是依赖块(如果这是发送)，但是没关系。
+			add_dependency (block_a.hashables.link);
+		}
+	}
+
 	void add_dependency (rai::block_hash const & hash_a)
 	{
 		if (!sync.synchronized (transaction, hash_a) && sync.retrieve (transaction, hash_a) != nullptr)

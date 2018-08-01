@@ -37,7 +37,8 @@ enum class block_type : uint8_t
 	receive = 3,
 	open = 4,
 	change = 5,
-	state = 6
+	state = 6,
+	token_state = 7
 };
 class block
 {
@@ -255,10 +256,34 @@ public:
 	// 区分了link字段在不同块中的意思
 	rai::uint256_union link;
 };
+class token_state_hashables
+{
+public:
+	token_state_hashables (rai::account const &, rai::block_hash const &, rai::account const &, rai::uint256_union,rai::token_amount const &, rai::uint256_union const &);
+	token_state_hashables (bool &, rai::stream &);
+	token_state_hashables (bool &, boost::property_tree::ptree const &);
+	void hash (blake2b_state &) const;
+	// Account# / public key that operates this account
+	// Uses:
+	// Bulk signature validation in advance of further ledger processing
+	// Arranging uncomitted transactions by account
+	rai::account account;
+	// Previous transaction in this chain
+	rai::block_hash previous;
+	// Representative of this account
+	rai::account representative;
+	// Current balance of this account
+	// Allows lookup of account balance simply by looking at the head block
+	rai::uint256_union token_name;
+	rai::token_amount token_balance;
+	// Link field contains source block_hash if receiving, destination account if sending
+	// 区分了link字段在不同块中的意思
+	rai::uint256_union link;
+};
 class state_block : public rai::block
 {
 public:
-	state_block (rai::account const &, rai::block_hash const &, rai::account const &, rai::amount const &, rai::uint256_union const &, rai::raw_key const &, rai::public_key const &, uint64_t);
+	state_block (rai::account const &, rai::block_hash const &, rai::account const &,rai::amount const &, rai::uint256_union const &, rai::raw_key const &, rai::public_key const &, uint64_t);
 	state_block (bool &, rai::stream &);
 	state_block (bool &, boost::property_tree::ptree const &);
 	virtual ~state_block () = default;
@@ -286,6 +311,38 @@ public:
 	rai::signature signature;
 	uint64_t work;
 };
+
+class token_state_block : public rai::block
+{
+public:
+	token_state_block (rai::account const &, rai::block_hash const &, rai::account const &,rai::uint256_union const &, rai::token_amount const &, rai::uint256_union const &, rai::raw_key const &, rai::public_key const &, uint64_t);
+	token_state_block (bool &, rai::stream &);
+	token_state_block (bool &, boost::property_tree::ptree const &);
+	virtual ~token_state_block () = default;
+	using rai::block::hash;
+	void hash (blake2b_state &) const override;
+	uint64_t block_work () const override;
+	void block_work_set (uint64_t) override;
+	rai::block_hash previous () const override;
+	rai::block_hash source () const override;
+	rai::block_hash root () const override;
+	rai::account representative () const override;
+	void serialize (rai::stream &) const override;
+	void serialize_json (std::string &) const override;
+	bool deserialize (rai::stream &);
+	bool deserialize_json (boost::property_tree::ptree const &);
+	void visit (rai::block_visitor &) const override;
+	rai::block_type type () const override;
+	rai::signature block_signature () const override;
+	void signature_set (rai::uint512_union const &) override;
+	bool operator== (rai::block const &) const override;
+	bool operator== (rai::token_state_block const &) const;
+	bool valid_predecessor (rai::block const &) const override;
+	static size_t constexpr size = sizeof (rai::account) + sizeof (rai::block_hash) + sizeof (rai::account) + sizeof (rai::amount) + sizeof (rai::uint256_union) + sizeof (rai::signature) + sizeof (uint64_t);
+	rai::token_state_hashables hashables;
+	rai::signature signature;
+	uint64_t work;
+};
 class block_visitor
 {
 public:
@@ -294,6 +351,7 @@ public:
 	virtual void open_block (rai::open_block const &) = 0;
 	virtual void change_block (rai::change_block const &) = 0;
 	virtual void state_block (rai::state_block const &) = 0;
+	virtual void token_state_block (rai::token_state_block const &) = 0;
 	virtual ~block_visitor () = default;
 };
 std::unique_ptr<rai::block> deserialize_block (rai::stream &);

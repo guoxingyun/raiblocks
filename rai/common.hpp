@@ -43,6 +43,7 @@ public:
 	void open_block (rai::open_block const &) override;
 	void change_block (rai::change_block const &) override;
 	void state_block (rai::state_block const &) override;
+	void token_state_block (rai::token_state_block const &) override;
 	MDB_txn * transaction;
 	rai::block_store & store;
 	rai::block_hash current;
@@ -64,6 +65,8 @@ public:
 	void open_block (rai::open_block const &) override;
 	void change_block (rai::change_block const &) override;
 	void state_block (rai::state_block const &) override;
+
+	void token_state_block (rai::token_state_block const &) override;
 	void from_send (rai::block_hash const &);
 	MDB_txn * transaction;
 	rai::block_store & store;
@@ -86,6 +89,7 @@ public:
 	void open_block (rai::open_block const & block_a) override;
 	void change_block (rai::change_block const & block_a) override;
 	void state_block (rai::state_block const & block_a) override;
+	void token_state_block (rai::token_state_block const & block_a) override;
 	MDB_txn * transaction;
 	rai::block_store & store;
 	rai::block_hash current;

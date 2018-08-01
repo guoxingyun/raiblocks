@@ -399,8 +399,12 @@ void rai::rpc_handler::token_account_info ()
 			response_l.put ("open_block", info.open_block.to_string ());
 			response_l.put ("representative_block", info.rep_block.to_string ());
 			std::string balance;
+			std::string token_balance;
 			rai::uint128_union (info.balance).encode_dec (balance);
+			rai::uint128_union (info.token_balance).encode_dec (token_balance);
 			response_l.put ("balance", balance);
+			response_l.put ("token_name", std::to_string (info.token_name));
+			response_l.put ("token_balance", token_balance);
 			response_l.put ("modified_timestamp", std::to_string (info.modified));
 			response_l.put ("block_count", std::to_string (info.block_count));
 			if (representative)
@@ -1810,6 +1814,55 @@ public:
 			}
 		}
 	}
+
+	void token_state_block (rai::token_state_block const & block_a)
+	{
+		if (raw)
+		{
+			tree.put ("type", "state");
+			tree.put ("representative", block_a.hashables.representative.to_account ());
+			tree.put ("link", block_a.hashables.link.to_string ());
+		}
+		auto balance (block_a.hashables.token_balance.number ());
+		auto previous_balance (handler.node.ledger.balance (transaction, block_a.hashables.previous));
+		if (balance < previous_balance)
+		{
+			if (raw)
+			{
+				tree.put ("subtype", "send");
+			}
+			else
+			{
+				tree.put ("type", "send");
+			}
+			tree.put ("account", block_a.hashables.link.to_account ());
+			tree.put ("amount", (previous_balance - balance).convert_to<std::string> ());
+		}
+		else
+		{
+			if (block_a.hashables.link.is_zero ())
+			{
+				if (raw)
+				{
+					tree.put ("subtype", "change");
+				}
+			}
+			else
+			{
+				if (raw)
+				{
+					tree.put ("subtype", "receive");
+				}
+				else
+				{
+					tree.put ("type", "receive");
+				}
+				tree.put ("account", block_a.hashables.account.to_account ());
+				tree.put ("amount", (balance - previous_balance).convert_to<std::string> ());
+			}
+		}
+	}
+
 	rai::rpc_handler & handler;
 	bool raw;
 	rai::transaction & transaction;

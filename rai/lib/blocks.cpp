@@ -842,6 +842,17 @@ link (link_a)
 {
 }
 
+rai::token_state_hashables::token_state_hashables (rai::account const & account_a, rai::block_hash const & previous_a, rai::account const & representative_a, rai::uint256_union token_name_a,rai::token_amount const & token_balance_a, rai::uint256_union const & link_a) :
+account (account_a),
+previous (previous_a),
+representative (representative_a),
+token_name (token_name_a),
+token_balance (token_balance_a),
+link (link_a)
+{
+}
+
+
 rai::state_hashables::state_hashables (bool & error_a, rai::stream & stream_a)
 {
 	error_a = rai::read (stream_a, account);
@@ -862,6 +873,33 @@ rai::state_hashables::state_hashables (bool & error_a, rai::stream & stream_a)
 		}
 	}
 }
+
+rai::token_state_hashables::token_state_hashables (bool & error_a, rai::stream & stream_a)
+{
+	error_a = rai::read (stream_a, account);
+	if (!error_a)
+	{
+		error_a = rai::read (stream_a, previous);
+		if (!error_a)
+		{
+			error_a = rai::read (stream_a, representative);
+			if(!error_a)
+			{
+				error_a = rai::read (stream_a, token_name);
+				if (!error_a)
+				{
+					error_a = rai::read (stream_a, token_balance);
+					if (!error_a)
+					{
+						error_a = rai::read (stream_a, link);
+					}
+				}
+			}
+		}
+	}
+}
+
+
 
 rai::state_hashables::state_hashables (bool & error_a, boost::property_tree::ptree const & tree_a)
 {
@@ -896,6 +934,47 @@ rai::state_hashables::state_hashables (bool & error_a, boost::property_tree::ptr
 	}
 }
 
+rai::token_state_hashables::token_state_hashables (bool & error_a, boost::property_tree::ptree const & tree_a)
+{
+	try
+	{
+		auto account_l (tree_a.get<std::string> ("account"));
+		auto previous_l (tree_a.get<std::string> ("previous"));
+		auto representative_l (tree_a.get<std::string> ("representative"));
+		auto token_name_l (tree_a.get<std::string> ("token_name"));
+		auto token_balance_l (tree_a.get<std::string> ("token_balance"));
+		auto link_l (tree_a.get<std::string> ("link"));
+		error_a = account.decode_account (account_l);
+		if (!error_a)
+		{
+			error_a = previous.decode_hex (previous_l);
+			if (!error_a)
+			{
+				error_a = representative.decode_account (representative_l);
+				if (!error_a)
+				{
+					error_a = token_name.decode_dec (token_name_l);
+					if (!error_a)
+					{
+						error_a = token_balance.decode_dec (token_balance_l);
+						if (!error_a)
+						{
+							error_a = link.decode_account (link_l) && link.decode_hex (link_l);
+						}
+					}
+				}
+			}
+		}
+	}
+	catch (std::runtime_error const &)
+	{
+		error_a = true;
+	}
+}
+
+
+
+
 void rai::state_hashables::hash (blake2b_state & hash_a) const
 {
 	blake2b_update (&hash_a, account.bytes.data (), sizeof (account.bytes));
@@ -904,6 +983,18 @@ void rai::state_hashables::hash (blake2b_state & hash_a) const
 	blake2b_update (&hash_a, balance.bytes.data (), sizeof (balance.bytes));
 	blake2b_update (&hash_a, link.bytes.data (), sizeof (link.bytes));
 }
+
+void rai::token_state_hashables::hash (blake2b_state & hash_a) const
+{
+	blake2b_update (&hash_a, account.bytes.data (), sizeof (account.bytes));
+	blake2b_update (&hash_a, previous.bytes.data (), sizeof (previous.bytes));
+	blake2b_update (&hash_a, representative.bytes.data (), sizeof (representative.bytes));
+	blake2b_update (&hash_a, token_name.bytes.data (), sizeof (token_name.bytes));
+	blake2b_update (&hash_a, token_balance.bytes.data (), sizeof (token_balance.bytes));
+	blake2b_update (&hash_a, link.bytes.data (), sizeof (link.bytes));
+}
+
+
 
 rai::state_block::state_block (rai::account const & account_a, rai::block_hash const & previous_a, rai::account const & representative_a, rai::amount const & balance_a, rai::uint256_union const & link_a, rai::raw_key const & prv_a, rai::public_key const & pub_a, uint64_t work_a) :
 hashables (account_a, previous_a, representative_a, balance_a, link_a),
@@ -986,6 +1077,7 @@ void rai::state_block::serialize (rai::stream & stream_a) const
 	write (stream_a, boost::endian::native_to_big (work));
 }
 
+
 void rai::state_block::serialize_json (std::string & string_a) const
 {
 	boost::property_tree::ptree tree;
@@ -1004,6 +1096,7 @@ void rai::state_block::serialize_json (std::string & string_a) const
 	boost::property_tree::write_json (ostream, tree);
 	string_a = ostream.str ();
 }
+
 
 bool rai::state_block::deserialize (rai::stream & stream_a)
 {
@@ -1035,6 +1128,7 @@ bool rai::state_block::deserialize (rai::stream & stream_a)
 	}
 	return error;
 }
+
 
 bool rai::state_block::deserialize_json (boost::property_tree::ptree const & tree_a)
 {
@@ -1108,11 +1202,6 @@ bool rai::state_block::operator== (rai::state_block const & other_a) const
 	return hashables.account == other_a.hashables.account && hashables.previous == other_a.hashables.previous && hashables.representative == other_a.hashables.representative && hashables.balance == other_a.hashables.balance && hashables.link == other_a.hashables.link && signature == other_a.signature && work == other_a.work;
 }
 
-bool rai::state_block::valid_predecessor (rai::block const & block_a) const
-{
-	return true;
-}
-
 rai::block_hash rai::state_block::source () const
 {
 	return 0;
@@ -1137,6 +1226,271 @@ void rai::state_block::signature_set (rai::uint512_union const & signature_a)
 {
 	signature = signature_a;
 }
+
+
+
+bool rai::state_block::valid_predecessor (rai::block const & block_a) const
+{
+	return true;
+}
+
+
+
+
+rai::token_state_block::token_state_block (rai::account const & account_a, rai::block_hash const & previous_a, rai::account const & representative_a,rai::uint256_union const & token_name_a, rai::token_amount const & token_balance_a, rai::uint256_union const & link_a, rai::raw_key const & prv_a, rai::public_key const & pub_a, uint64_t work_a) :
+hashables (account_a, previous_a, representative_a, token_name_a,token_balance_a, link_a),
+signature (rai::sign_message (prv_a, pub_a, hash ())),
+work (work_a)
+{
+}
+
+rai::token_state_block::token_state_block (bool & error_a, rai::stream & stream_a) :
+hashables (error_a, stream_a)
+{
+	if (!error_a)
+	{
+		error_a = rai::read (stream_a, signature);
+		if (!error_a)
+		{
+			error_a = rai::read (stream_a, work);
+			boost::endian::big_to_native_inplace (work);
+		}
+	}
+}
+
+rai::token_state_block::token_state_block (bool & error_a, boost::property_tree::ptree const & tree_a) :
+hashables (error_a, tree_a)
+{
+	if (!error_a)
+	{
+		try
+		{
+			auto type_l (tree_a.get<std::string> ("type"));
+			auto signature_l (tree_a.get<std::string> ("signature"));
+			auto work_l (tree_a.get<std::string> ("work"));
+			error_a = type_l != "state";
+			if (!error_a)
+			{
+				error_a = rai::from_string_hex (work_l, work);
+				if (!error_a)
+				{
+					error_a = signature.decode_hex (signature_l);
+				}
+			}
+		}
+		catch (std::runtime_error const &)
+		{
+			error_a = true;
+		}
+	}
+}
+
+void rai::token_state_block::hash (blake2b_state & hash_a) const
+{
+	rai::uint256_union preamble (static_cast<uint64_t> (rai::block_type::state));
+	blake2b_update (&hash_a, preamble.bytes.data (), preamble.bytes.size ());
+	hashables.hash (hash_a);
+}
+
+uint64_t rai::token_state_block::block_work () const
+{
+	return work;
+}
+
+void rai::token_state_block::block_work_set (uint64_t work_a)
+{
+	work = work_a;
+}
+
+rai::block_hash rai::token_state_block::previous () const
+{
+	return hashables.previous;
+}
+
+void rai::token_state_block::serialize (rai::stream & stream_a) const
+{
+	write (stream_a, hashables.account);
+	write (stream_a, hashables.previous);
+	write (stream_a, hashables.representative);
+	write (stream_a, hashables.token_name);
+	write (stream_a, hashables.token_balance);
+	write (stream_a, hashables.link);
+	write (stream_a, signature);
+	write (stream_a, boost::endian::native_to_big (work));
+}
+
+
+void rai::token_state_block::serialize_json (std::string & string_a) const
+{
+	boost::property_tree::ptree tree;
+	tree.put ("type", "state");
+	tree.put ("account", hashables.account.to_account ());
+	tree.put ("previous", hashables.previous.to_string ());
+	tree.put ("representative", representative ().to_account ());
+	tree.put ("token_name", hashables.token_name.to_string());
+	tree.put ("token_balance", hashables.token_balance.to_string_dec ());
+	tree.put ("link", hashables.link.to_string ());
+	tree.put ("link_as_account", hashables.link.to_account ());
+	std::string signature_l;
+	signature.encode_hex (signature_l);
+	tree.put ("signature", signature_l);
+	tree.put ("work", rai::to_string_hex (work));
+	std::stringstream ostream;
+	boost::property_tree::write_json (ostream, tree);
+	string_a = ostream.str ();
+}
+
+
+
+
+bool rai::token_state_block::deserialize (rai::stream & stream_a)
+{
+	auto error (read (stream_a, hashables.account));
+	if (!error)
+	{
+		error = read (stream_a, hashables.previous);
+		if (!error)
+		{
+			error = read (stream_a, hashables.representative);
+			if (!error)
+			{
+				error = read (stream_a, hashables.token_name);
+				if (!error)
+				{
+					error = read (stream_a, hashables.token_balance);
+					if(!error)
+					{
+						error = read (stream_a, hashables.link);
+						if (!error)
+						{
+							error = read (stream_a, signature);
+							if (!error)
+							{
+								error = read (stream_a, work);
+								boost::endian::big_to_native_inplace (work);
+							}
+						}
+					}
+				}   
+			}
+		}
+	}
+	return error;
+}
+
+
+bool rai::token_state_block::deserialize_json (boost::property_tree::ptree const & tree_a)
+{
+	auto error (false);
+	try
+	{
+		assert (tree_a.get<std::string> ("type") == "state");
+		auto account_l (tree_a.get<std::string> ("account"));
+		auto previous_l (tree_a.get<std::string> ("previous"));
+		auto representative_l (tree_a.get<std::string> ("representative"));
+		auto token_name_l (tree_a.get<std::string> ("token_name"));
+		auto token_balance_l (tree_a.get<std::string> ("token_balance"));
+		auto link_l (tree_a.get<std::string> ("link"));
+		auto work_l (tree_a.get<std::string> ("work"));
+		auto signature_l (tree_a.get<std::string> ("signature"));
+		error = hashables.account.decode_account (account_l);
+		if (!error)
+		{
+			error = hashables.previous.decode_hex (previous_l);
+			if (!error)
+			{
+				error = hashables.representative.decode_account (representative_l);
+				if(!error)
+				{
+					error = hashables.token_name.decode_dec(token_name_l);
+					if (!error)
+					{
+						error = hashables.token_balance.decode_dec (token_balance_l);
+						if (!error)
+						{
+							error = hashables.link.decode_account (link_l) && hashables.link.decode_hex (link_l);
+							if (!error)
+							{
+								error = rai::from_string_hex (work_l, work);
+								if (!error)
+								{
+									error = signature.decode_hex (signature_l);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	catch (std::runtime_error const &)
+	{
+		error = true;
+	}
+	return error;
+}
+
+
+
+void rai::token_state_block::visit (rai::block_visitor & visitor_a) const
+{
+	visitor_a.token_state_block (*this);
+}
+
+rai::block_type rai::token_state_block::type () const
+{
+	return rai::block_type::token_state;
+}
+
+bool rai::token_state_block::operator== (rai::block const & other_a) const
+{
+	auto other_l (dynamic_cast<rai::state_block const *> (&other_a));
+	auto result (other_l != nullptr);
+	if (result)
+	{
+		result = *this == *other_l;
+	}
+	return result;
+}
+
+bool rai::token_state_block::operator== (rai::token_state_block const & other_a) const
+{
+	return hashables.account == other_a.hashables.account && hashables.previous == other_a.hashables.previous && hashables.representative == other_a.hashables.representative && hashables.token_name == other_a.hashables.token_name && hashables.token_balance == other_a.hashables.token_balance && hashables.link == other_a.hashables.link && signature == other_a.signature && work == other_a.work;
+}
+
+
+
+
+rai::block_hash rai::token_state_block::source () const
+{
+	return 0;
+}
+
+rai::block_hash rai::token_state_block::root () const
+{
+	return !hashables.previous.is_zero () ? hashables.previous : hashables.account;
+}
+
+rai::account rai::token_state_block::representative () const
+{
+	return hashables.representative;
+}
+
+rai::signature rai::token_state_block::block_signature () const
+{
+	return signature;
+}
+
+void rai::token_state_block::signature_set (rai::uint512_union const & signature_a)
+{
+	signature = signature_a;
+}
+bool rai::token_state_block::valid_predecessor (rai::block const & block_a) const
+{
+	return true;
+}
+
+
 
 std::unique_ptr<rai::block> rai::deserialize_block_json (boost::property_tree::ptree const & tree_a)
 {
@@ -1189,6 +1543,15 @@ std::unique_ptr<rai::block> rai::deserialize_block_json (boost::property_tree::p
 				result = std::move (obj);
 			}
 		}
+		else if (type == "token_state")
+		{
+			bool error;
+			std::unique_ptr<rai::token_state_block> obj (new rai::token_state_block (error, tree_a));
+			if (!error)
+			{
+				result = std::move (obj);
+			}
+		}
 	}
 	catch (std::runtime_error const &)
 	{
@@ -1199,7 +1562,7 @@ std::unique_ptr<rai::block> rai::deserialize_block_json (boost::property_tree::p
 std::unique_ptr<rai::block> rai::deserialize_block (rai::stream & stream_a)
 {
 	rai::block_type type;
-	auto error (read (stream_a, type));
+	auto error (read (stream_a, type));//type都放在字节流的第一位
 	std::unique_ptr<rai::block> result;
 	if (!error)
 	{
@@ -1263,6 +1626,17 @@ std::unique_ptr<rai::block> rai::deserialize_block (rai::stream & stream_a, rai:
 			}
 			break;
 		}
+		case rai::block_type::token_state:
+		{
+			bool error;
+			std::unique_ptr<rai::token_state_block> obj (new rai::token_state_block (error, stream_a));
+			if (!error)
+			{
+				result = std::move (obj);
+			}
+			break;
+		}
+
 		default:
 			assert (false);
 			break;

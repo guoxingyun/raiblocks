@@ -2568,15 +2568,15 @@ CMAC	./cryptopp/cmac.h	/^	CMAC(const byte *key, size_t length=SameKeyLengthAs<T>
 CMAC	./cryptopp/cmac.h	/^class CMAC : public MessageAuthenticationCodeImpl<CMAC_Base, CMAC<T> >, public SameKeyLengthAs<T>$/;"	c
 CMAC_Base	./cryptopp/cmac.h	/^	CMAC_Base() : m_counter(0) {}$/;"	f	class:CMAC_Base
 CMAC_Base	./cryptopp/cmac.h	/^class CRYPTOPP_DLL CRYPTOPP_NO_VTABLE CMAC_Base : public MessageAuthenticationCode$/;"	c
-CMAKE_BINARY_DIR	./build/Makefile	/^CMAKE_BINARY_DIR = \/home\/guoxingyun\/raiblocks\/build$/;"	m
-CMAKE_BINARY_DIR	./build/gtest/Makefile	/^CMAKE_BINARY_DIR = \/home\/guoxingyun\/raiblocks\/build$/;"	m
-CMAKE_BINARY_DIR	./build/miniupnp/miniupnpc/Makefile	/^CMAKE_BINARY_DIR = \/home\/guoxingyun\/raiblocks\/build$/;"	m
+CMAKE_BINARY_DIR	./build/Makefile	/^CMAKE_BINARY_DIR = \/home\/guoxingyun\/rai\/raiblocks\/build$/;"	m
+CMAKE_BINARY_DIR	./build/gtest/Makefile	/^CMAKE_BINARY_DIR = \/home\/guoxingyun\/rai\/raiblocks\/build$/;"	m
+CMAKE_BINARY_DIR	./build/miniupnp/miniupnpc/Makefile	/^CMAKE_BINARY_DIR = \/home\/guoxingyun\/rai\/raiblocks\/build$/;"	m
 CMAKE_COMMAND	./build/Makefile	/^CMAKE_COMMAND = \/usr\/bin\/cmake$/;"	m
 CMAKE_COMMAND	./build/gtest/Makefile	/^CMAKE_COMMAND = \/usr\/bin\/cmake$/;"	m
 CMAKE_COMMAND	./build/miniupnp/miniupnpc/Makefile	/^CMAKE_COMMAND = \/usr\/bin\/cmake$/;"	m
-CMAKE_SOURCE_DIR	./build/Makefile	/^CMAKE_SOURCE_DIR = \/home\/guoxingyun\/raiblocks$/;"	m
-CMAKE_SOURCE_DIR	./build/gtest/Makefile	/^CMAKE_SOURCE_DIR = \/home\/guoxingyun\/raiblocks$/;"	m
-CMAKE_SOURCE_DIR	./build/miniupnp/miniupnpc/Makefile	/^CMAKE_SOURCE_DIR = \/home\/guoxingyun\/raiblocks$/;"	m
+CMAKE_SOURCE_DIR	./build/Makefile	/^CMAKE_SOURCE_DIR = \/home\/guoxingyun\/rai\/raiblocks$/;"	m
+CMAKE_SOURCE_DIR	./build/gtest/Makefile	/^CMAKE_SOURCE_DIR = \/home\/guoxingyun\/rai\/raiblocks$/;"	m
+CMAKE_SOURCE_DIR	./build/miniupnp/miniupnpc/Makefile	/^CMAKE_SOURCE_DIR = \/home\/guoxingyun\/rai\/raiblocks$/;"	m
 CMP	./lmdb/libraries/liblmdb/midl.c	32;"	d	file:
 CODELENGTH	./miniupnp/minissdpd/codelength.h	48;"	d
 CODELENGTH	./miniupnp/miniupnpc/codelength.h	48;"	d

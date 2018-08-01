@@ -152,6 +152,65 @@ public:
 		}
 		ledger.store.block_del (transaction, hash);
 	}
+
+	void token_state_block (rai::token_state_block const & block_a) override //简单copy还没改结构
+	{
+		auto hash (block_a.hash ());
+		rai::block_hash representative (0);
+		if (!block_a.hashables.previous.is_zero ())
+		{
+			representative = ledger.representative (transaction, block_a.hashables.previous);
+		}
+		auto balance (ledger.balance (transaction, block_a.hashables.previous));
+		auto is_send (block_a.hashables.token_balance < balance);
+		// Add in amount delta,回退后代表账户的投票权也要对应回退
+		ledger.store.representation_add (transaction, hash, 0 - block_a.hashables.token_balance.number ());
+		if (!representative.is_zero ())
+		{
+			// Move existing representation
+			ledger.store.representation_add (transaction, representative, balance);
+		}
+
+		if (is_send)
+		{
+			rai::pending_key key (block_a.hashables.link, hash);
+			while (!ledger.store.pending_exists (transaction, key))
+			{
+				ledger.rollback (transaction, ledger.latest (transaction, block_a.hashables.link));
+			}
+			ledger.store.pending_del (transaction, key);
+		}
+		else if (!block_a.hashables.link.is_zero ())
+		{
+			rai::pending_info info (ledger.account (transaction, block_a.hashables.link), block_a.hashables.token_balance.number () - balance);
+			ledger.store.pending_put (transaction, rai::pending_key (block_a.hashables.account, block_a.hashables.link), info);
+		}
+
+		rai::account_info info;
+		auto error (ledger.store.account_get (transaction, block_a.hashables.account, info));
+		assert (!error);
+		ledger.change_latest (transaction, block_a.hashables.account, block_a.hashables.previous, representative, balance, info.block_count - 1);
+
+		auto previous (ledger.store.block_get (transaction, block_a.hashables.previous));
+		if (previous != nullptr)
+		{
+			ledger.store.block_successor_clear (transaction, block_a.hashables.previous);
+			switch (previous->type ())
+			{
+				case rai::block_type::send:
+				case rai::block_type::receive:
+				case rai::block_type::open:
+				case rai::block_type::change:
+				{
+					ledger.store.frontier_put (transaction, block_a.hashables.previous, block_a.hashables.account);
+					break;
+				}
+				default:
+					break;
+			}
+		}
+		ledger.store.block_del (transaction, hash);
+	}
 	MDB_txn * transaction;
 	rai::ledger & ledger;
 };
@@ -166,7 +225,11 @@ public:
 	void open_block (rai::open_block const &) override;
 	void change_block (rai::change_block const &) override;
 	void state_block (rai::state_block const &) override;
+	void token_state_block (rai::token_state_block const &) override;
+
 	void state_block_impl (rai::state_block const &);
+
+	void token_state_block_impl (rai::token_state_block const &);
 	rai::ledger & ledger;
 	MDB_txn * transaction;
 	rai::process_return result;
@@ -180,6 +243,16 @@ void ledger_processor::state_block (rai::state_block const & block_a)
 		state_block_impl (block_a);
 	}
 }
+
+void ledger_processor::token_state_block (rai::token_state_block const & block_a)
+{
+	result.code = ledger.state_block_parsing_enabled (transaction) ? rai::process_result::progress : rai::process_result::state_block_disabled;
+	if (result.code == rai::process_result::progress)
+	{
+		token_state_block_impl (block_a);
+	}
+}
+
 
 void ledger_processor::state_block_impl (rai::state_block const & block_a)
 {
@@ -285,6 +358,114 @@ void ledger_processor::state_block_impl (rai::state_block const & block_a)
 		}
 	}
 }
+
+
+void ledger_processor::token_state_block_impl (rai::token_state_block const & block_a)
+{
+	auto hash (block_a.hash ());
+	auto existing (ledger.store.block_exists (transaction, hash));
+	result.code = existing ? rai::process_result::old : rai::process_result::progress; // Have we seen this block before? (Unambiguous)
+	if (result.code == rai::process_result::progress)
+	{
+		result.code = validate_message (block_a.hashables.account, hash, block_a.signature) ? rai::process_result::bad_signature : rai::process_result::progress; // Is this block signed correctly (Unambiguous)
+		if (result.code == rai::process_result::progress)
+		{//销毁账号即使破解出来密钥也无法打块
+			result.code = block_a.hashables.account.is_zero () ? rai::process_result::opened_burn_account : rai::process_result::progress; 
+			// Is this for the burn account? (Unambiguous)
+			if (result.code == rai::process_result::progress)
+			{
+				rai::account_info info;
+				result.amount = block_a.hashables.token_balance;
+				auto is_send (false);
+				auto account_error (ledger.store.account_get (transaction, block_a.hashables.account, info));
+				if (!account_error)
+				{
+					// Account already exists
+					result.code = block_a.hashables.previous.is_zero () ? rai::process_result::fork : rai::process_result::progress; // Has this account already been opened? (Ambigious)
+					if (result.code == rai::process_result::progress)
+					{
+						result.code = ledger.store.block_exists (transaction, block_a.hashables.previous) ? rai::process_result::progress : rai::process_result::gap_previous; // Does the previous block exist in the ledger? (Unambigious)
+						if (result.code == rai::process_result::progress)
+						{
+							is_send = block_a.hashables.token_balance < info.balance;
+							result.amount = is_send ? (info.balance.number () - result.amount.number ()) : (result.amount.number () - info.balance.number ());
+							result.code = block_a.hashables.previous == info.head ? rai::process_result::progress : rai::process_result::fork; // Is the previous block the account's head block? (Ambigious)
+						}
+					}
+				}
+				else
+				{
+					// Account does not yet exists------------OPEM
+					result.code = block_a.previous ().is_zero () ? rai::process_result::progress : rai::process_result::gap_previous; // Does the first block in an account yield 0 for previous() ? (Unambigious)
+					if (result.code == rai::process_result::progress)
+					{
+						result.code = !block_a.hashables.link.is_zero () ? rai::process_result::progress : rai::process_result::gap_source; // Is the first block receiving from a send ? (Unambigious)
+					}
+				}
+				if (result.code == rai::process_result::progress)
+				{
+					if (!is_send)
+					{
+						if (!block_a.hashables.link.is_zero ())
+						{
+							result.code = ledger.store.block_exists (transaction, block_a.hashables.link) ? rai::process_result::progress : rai::process_result::gap_source; // Have we seen the source block already? (Harmless)
+							if (result.code == rai::process_result::progress)
+							{
+								rai::pending_key key (block_a.hashables.account, block_a.hashables.link);
+								rai::pending_info pending;
+								result.code = ledger.store.pending_get (transaction, key, pending) ? rai::process_result::unreceivable : rai::process_result::progress; // Has this source already been received (Malformed)
+								if (result.code == rai::process_result::progress)
+								{
+									result.code = result.amount == pending.amount ? rai::process_result::progress : rai::process_result::balance_mismatch;
+								}
+							}
+						}
+						else
+						{
+							// If there's no link, the balance must remain the same, only the representative can change
+							result.code = result.amount.is_zero () ? rai::process_result::progress : rai::process_result::balance_mismatch;
+						}
+					}
+				}
+				if (result.code == rai::process_result::progress)
+				{
+					result.state_is_send = is_send;
+					ledger.store.block_put (transaction, hash, block_a);
+
+					if (!info.rep_block.is_zero ())
+					{
+						// Move existing representation  本账户代表的投票权重减少，发送方的代表投票权重增加,子类型为change
+						ledger.store.representation_add (transaction, info.rep_block, 0 - info.token_balance.number ());
+					}
+					// Add in amount delta
+					ledger.store.representation_add (transaction, hash, block_a.hashables.token_balance.number ());
+
+					if (is_send)//子类型为发送
+					{
+						rai::pending_key key (block_a.hashables.link, hash);
+						rai::pending_info info (block_a.hashables.account, result.amount.number ());
+						ledger.store.pending_put (transaction, key, info);
+					}
+					else if (!block_a.hashables.link.is_zero ())
+					{//子类型为接收，删除未接收记录
+						ledger.store.pending_del (transaction, rai::pending_key (block_a.hashables.account, block_a.hashables.link));
+					}
+
+					ledger.change_latest (transaction, block_a.hashables.account, hash, hash, block_a.hashables.token_balance, info.block_count + 1, true);
+					if (!ledger.store.frontier_get (transaction, info.head).is_zero ())
+					{
+						ledger.store.frontier_del (transaction, info.head);
+					}
+					// Frontier table is unnecessary for state blocks and this also prevents old blocks from being inserted on top of state blocks
+					// 状态块不需要边界表，这也防止旧的块插入到状态块的顶部?????
+					result.account = block_a.hashables.account;
+				}
+			}
+		}
+	}
+}
+
+
 
 void ledger_processor::change_block (rai::change_block const & block_a)
 {

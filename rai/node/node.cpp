@@ -2469,6 +2469,10 @@ public:
 	{
 		scan_receivable (block_a.hashables.link);
 	}
+	void token_state_block (rai::token_state_block const & block_a) override
+	{
+		scan_receivable (block_a.hashables.link);
+	}
 	void send_block (rai::send_block const & block_a) override
 	{
 		scan_receivable (block_a.hashables.destination);

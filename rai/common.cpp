@@ -352,6 +352,14 @@ amount (amount_a)
 {
 }
 
+rai::pending_info::pending_info (rai::account const & source_a, uint64_t token_name_a,rai::amount const & amount_a) :
+token_name (token_name_a),
+source (source_a),
+amount (amount_a)
+{
+}
+
+
 void rai::pending_info::serialize (rai::stream & stream_a) const
 {
 	rai::write (stream_a, source.bytes);
@@ -548,6 +556,15 @@ void rai::amount_visitor::state_block (rai::state_block const & block_a)
 	current = 0;
 }
 
+void rai::amount_visitor::token_state_block (rai::token_state_block const & block_a)
+{
+	balance_visitor prev (transaction, store);
+	prev.compute (block_a.hashables.previous);
+	result = block_a.hashables.token_balance.number ();
+	result = result < prev.result ? prev.result - result : result - prev.result;
+	current = 0;
+}
+
 void rai::amount_visitor::change_block (rai::change_block const & block_a)
 {
 	result = 0;
@@ -640,6 +657,14 @@ void rai::balance_visitor::state_block (rai::state_block const & block_a)
 	current = 0;
 }
 
+void rai::balance_visitor::token_state_block (rai::token_state_block const & block_a)
+{
+	result = block_a.hashables.token_balance.number ();
+	current = 0;
+}
+
+
+
 void rai::balance_visitor::compute (rai::block_hash const & block_hash)
 {
 	current = block_hash;
@@ -690,6 +715,11 @@ void rai::representative_visitor::change_block (rai::change_block const & block_
 }
 
 void rai::representative_visitor::state_block (rai::state_block const & block_a)
+{
+	result = block_a.hash ();
+}
+
+void rai::representative_visitor::token_state_block (rai::token_state_block const & block_a)
 {
 	result = block_a.hash ();
 }
