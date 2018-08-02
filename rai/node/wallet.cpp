@@ -1088,6 +1088,109 @@ std::shared_ptr<rai::block> rai::wallet::send_action (rai::account const & sourc
 	return block;
 }
 
+
+//token_send
+std::shared_ptr<rai::block> rai::wallet::send_action (rai::account const & source_a, rai::account const & account_a,rai::uint256_union const & token_name_a ,
+		rai::uint128_t const & token_amount_a, bool generate_work_a, boost::optional<std::string> id_a)
+{
+	std::shared_ptr<rai::block> block;
+	boost::optional<rai::mdb_val> id_mdb_val;
+	if (id_a)
+	{
+		id_mdb_val = rai::mdb_val (id_a->size (), const_cast<char *> (id_a->data ()));
+	}
+	bool error = false;
+	bool cached_block = false;
+	{
+		rai::transaction transaction (store.environment, nullptr, (bool)id_mdb_val);
+		if (id_mdb_val)
+		{
+			rai::mdb_val result;
+			auto status (mdb_get (transaction, node.wallets.send_action_ids, *id_mdb_val, result));
+			if (status == 0)
+			{
+				auto hash (result.uint256 ());
+				block = node.store.block_get (transaction, hash);
+				if (block != nullptr)
+				{
+					cached_block = true;
+					node.network.republish_block (transaction, block);
+				}
+			}
+			else if (status != MDB_NOTFOUND)
+			{
+				error = true;
+			}
+		}
+		if (!error && block == nullptr)
+		{
+			if (store.valid_password (transaction))
+			{
+				auto existing (store.find (transaction, source_a));
+				if (existing != store.end ())
+				{
+					auto balance (node.ledger.account_balance (transaction, source_a));
+					if (!balance.is_zero () && balance >= token_amount_a)
+					{
+						rai::account_info info;
+						auto error1 (node.ledger.store.account_get (transaction, source_a, info));
+						assert (!error1);
+						rai::raw_key prv;
+						auto error2 (store.fetch (transaction, source_a, prv));
+						assert (!error2);
+						std::shared_ptr<rai::block> rep_block = node.ledger.store.block_get (transaction, info.rep_block);
+						assert (rep_block != nullptr);
+						uint64_t cached_work (0);
+						store.work_get (transaction, source_a, cached_work);
+						if (should_generate_state_block (transaction, info.head))
+						{
+							block.reset (new rai::token_state_block (source_a, info.head, rep_block->representative (), token_name_a,balance - token_amount_a, account_a, prv, source_a, cached_work));
+						}
+						else
+						{
+							block.reset (new rai::send_block (info.head, account_a, balance - token_amount_a, prv, source_a, cached_work));
+						}
+
+					BOOST_LOG (node.log) << "sendactioaaaaaaaaa";
+						if (id_mdb_val)
+						{
+							auto status (mdb_put (transaction, node.wallets.send_action_ids, *id_mdb_val, rai::mdb_val (block->hash ()), 0));
+							if (status != 0)
+							{
+								block = nullptr;
+								error = true;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	if (!error && block != nullptr && !cached_block)
+	{
+		if (generate_work_a && rai::work_validate (*block))
+		{
+			node.generate_work (*block);
+		}
+					BOOST_LOG (node.log) << "sendaction22222";
+		node.block_arrival.add (block->hash ());
+
+					BOOST_LOG (node.log) << "sendaction333333333333";
+		node.block_processor.add (block);
+		node.block_processor.flush ();
+
+					BOOST_LOG (node.log) << "sendaction444444444444";
+		auto hash (block->hash ());
+		auto this_l (shared_from_this ());
+		node.wallets.queue_wallet_action (rai::wallets::generate_priority, [this_l, source_a, hash] {
+			this_l->work_generate (source_a, hash);
+		});
+	}
+	return block;
+}
+
+
+
 bool rai::wallet::should_generate_state_block (MDB_txn * transaction_a, rai::block_hash const & hash_a)
 {
 	auto head (node.store.block_get (transaction_a, hash_a));
@@ -1152,6 +1255,19 @@ void rai::wallet::send_async (rai::account const & source_a, rai::account const 
 		});
 	});
 }
+
+//token_send
+void rai::wallet::send_async (rai::account const & source_a, rai::account const & account_a, rai::uint256_union const & token_name_a, rai::uint128_t const & token_amount_a, std::function<void(std::shared_ptr<rai::block>)> const & action_a, bool generate_work_a, boost::optional<std::string> id_a)
+{
+	node.background ([this, source_a, account_a, token_name_a,token_amount_a, action_a, generate_work_a, id_a]() {
+		this->node.wallets.queue_wallet_action (rai::wallets::high_priority, [this, source_a, account_a, token_name_a,token_amount_a, action_a, generate_work_a, id_a]() {
+			auto block (send_action (source_a, account_a, token_name_a,token_amount_a, generate_work_a, id_a));
+			action_a (block);
+		});
+	});
+}
+
+
 
 // Update work for account if latest root is root_a
 void rai::wallet::work_update (MDB_txn * transaction_a, rai::account const & account_a, rai::block_hash const & root_a, uint64_t work_a)

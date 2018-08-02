@@ -3276,6 +3276,134 @@ void rai::rpc_handler::send ()
 		error_response (response, "RPC control is disabled");
 	}
 }
+void rai::rpc_handler::token_send ()
+{
+	if (rpc.config.enable_control)
+	{
+		std::string wallet_text (request.get<std::string> ("wallet"));
+		rai::uint256_union wallet;
+		auto error (wallet.decode_hex (wallet_text));
+		if (!error)
+		{
+			auto existing (node.wallets.items.find (wallet));
+			if (existing != node.wallets.items.end ())
+			{
+				std::string source_text (request.get<std::string> ("source"));
+				rai::account source;
+				auto error (source.decode_account (source_text));
+				if (!error)
+				{
+					std::string destination_text (request.get<std::string> ("destination"));
+					rai::account destination;
+					auto error (destination.decode_account (destination_text));
+					if (!error)
+					{
+						std::string token_name_text (request.get<std::string> ("token_name"));
+						rai::uint256_union  token_name;
+						auto error (token_name.decode_dec (token_name_text));
+						if(!error)	
+						{
+							std::string token_amount_text (request.get<std::string> ("token_amount"));
+							rai::token_amount token_amount;
+							auto error (token_amount.decode_dec (token_amount_text));
+							if (!error)
+							{
+								uint64_t work (0);
+								boost::optional<std::string> work_text (request.get_optional<std::string> ("work"));
+								if (work_text.is_initialized ())
+								{
+									auto work_error (rai::from_string_hex (work_text.get (), work));
+									if (work_error)
+									{
+										error_response (response, "Bad work");
+									}
+								}
+								rai::uint128_t balance (0);
+								{
+									rai::transaction transaction (node.store.environment, nullptr, work != 0); // false if no "work" in request, true if work > 0
+									rai::account_info info;
+									if (!node.store.account_get (transaction, source, info))
+									{
+										balance = (info.balance).number ();
+									}
+									else
+									{
+										error_response (response, "Account not found");
+									}
+									if (work)
+									{
+										if (!rai::work_validate (info.head, work))
+										{
+											existing->second->store.work_put (transaction, source, work);
+										}
+										else
+										{
+											error_response (response, "Invalid work");
+										}
+									}
+								}
+								boost::optional<std::string> send_id (request.get_optional<std::string> ("id"));
+								if (balance >= token_amount.number ())
+								{
+									auto rpc_l (shared_from_this ());
+									auto response_a (response);
+									existing->second->send_async (source, destination, token_name,token_amount.number (), [response_a](std::shared_ptr<rai::block> block_a) {
+										if (block_a != nullptr)
+										{
+											rai::uint256_union hash (block_a->hash ());
+											boost::property_tree::ptree response_l;
+											response_l.put ("block", hash.to_string ());
+											response_a (response_l);
+										}
+										else
+										{
+											error_response (response_a, "Error generating block");
+										}
+									},
+									work == 0, send_id);
+								}
+								else
+								{
+									error_response (response, "Insufficient balance");
+								}
+							}
+							else
+							{
+								error_response (response, "Bad amount format");
+							}
+						}
+						else
+						{
+							error_response (response, "Bad token name format");
+						}
+					}
+					else
+					{
+						error_response (response, "Bad destination account");
+					}
+				}
+				else
+				{
+					error_response (response, "Bad source account");
+				}
+			}
+			else
+			{
+				error_response (response, "Wallet not found");
+			}
+		}
+		else
+		{
+			error_response (response, "Bad wallet number");
+		}
+	}
+	else
+	{
+		error_response (response, "RPC control is disabled");
+	}
+}
+
+
 
 void rai::rpc_handler::stop ()
 {
@@ -4650,6 +4778,10 @@ void rai::rpc_handler::process_request ()
 		{
 			account_info ();
 		}
+		else if (action == "token_account_info")
+		{
+			token_account_info ();
+		}
 		else if (action == "account_key")
 		{
 			account_key ();
@@ -4890,6 +5022,10 @@ void rai::rpc_handler::process_request ()
 		else if (action == "send")
 		{
 			send ();
+		}
+		else if (action == "token_send")
+		{
+			token_send ();
 		}
 		else if (action == "stop")
 		{

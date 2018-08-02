@@ -181,6 +181,7 @@ public:
 	void search_pending ();
 	void search_pending_all ();
 	void send ();
+	void token_send ();
 	void stop ();
 	void successors ();
 	void unchecked ();
