@@ -1129,11 +1129,12 @@ std::shared_ptr<rai::block> rai::wallet::send_action (rai::account const & sourc
 				auto existing (store.find (transaction, source_a));
 				if (existing != store.end ())
 				{
-					auto balance (node.ledger.account_balance (transaction, source_a));
+					//这里取的tokenbalance但是初始的tokenbalance为空，待资产初始化接口写好,解决
+					auto balance (node.ledger.token_account_balance (transaction,source_a,token_name_a));
 					if (!balance.is_zero () && balance >= token_amount_a)
 					{
 						rai::account_info info;
-						auto error1 (node.ledger.store.account_get (transaction, source_a, info));
+						auto error1 (node.ledger.store.token_account_get (transaction, source_a, info));
 						assert (!error1);
 						rai::raw_key prv;
 						auto error2 (store.fetch (transaction, source_a, prv));

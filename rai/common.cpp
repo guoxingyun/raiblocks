@@ -853,3 +853,30 @@ rai::block_hash rai::genesis::hash () const
 {
 	return open->hash ();
 }
+
+
+rai::token_genesis::token_genesis ()
+{
+	boost::property_tree::ptree tree;
+	std::stringstream istream (rai::genesis_block);
+	boost::property_tree::read_json (istream, tree);
+	auto block (rai::deserialize_block_json (tree));
+	assert (dynamic_cast<rai::state_block *> (block.get ()) != nullptr);
+	state.reset (static_cast<rai::state_block *> (block.release ()));
+}
+
+void rai::token_genesis::initialize (MDB_txn * transaction_a, rai::block_store & store_a) const
+{
+	auto hash_l (hash ());
+	assert (store_a.latest_begin (transaction_a) == store_a.latest_end ());
+	store_a.block_put (transaction_a, hash_l, *state);
+	store_a.token_account_put (transaction_a, genesis_account, { hash_l, state->hash (), state->hash (), std::numeric_limits<rai::uint128_t>::max (), rai::seconds_since_epoch (), 1 });
+//	store_a.representation_put (transaction_a, genesis_account, std::numeric_limits<rai::uint128_t>::max ());
+	store_a.checksum_put (transaction_a, 0, 0, hash_l);
+	store_a.frontier_put (transaction_a, hash_l, genesis_account);
+}
+
+rai::block_hash rai::token_genesis::hash () const
+{
+	return state->hash ();
+}

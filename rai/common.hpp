@@ -307,4 +307,13 @@ public:
 	rai::block_hash hash () const;
 	std::unique_ptr<rai::open_block> open;
 };
+
+class token_genesis
+{
+public:
+	explicit token_genesis ();
+	void initialize (MDB_txn *, rai::block_store &) const;
+	rai::block_hash hash () const;
+	std::unique_ptr<rai::state_block> state;
+};
 }

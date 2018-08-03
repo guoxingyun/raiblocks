@@ -24,6 +24,7 @@ public:
 	rai::uint128_t amount (MDB_txn *, rai::block_hash const &);
 	rai::uint128_t balance (MDB_txn *, rai::block_hash const &);
 	rai::uint128_t account_balance (MDB_txn *, rai::account const &);
+	rai::uint128_t token_account_balance (MDB_txn *, rai::uint256_union const &,rai::account const &);
 	rai::uint128_t account_pending (MDB_txn *, rai::account const &);
 	rai::uint128_t weight (MDB_txn *, rai::account const &);
 	std::unique_ptr<rai::block> successor (MDB_txn *, rai::block_hash const &);

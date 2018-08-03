@@ -741,6 +741,20 @@ rai::uint128_t rai::ledger::account_balance (MDB_txn * transaction_a, rai::accou
 	return result;
 }
 
+// tokengxy--暂时token那么写死1个值，后边用数组整
+rai::uint128_t rai::ledger::token_account_balance (MDB_txn * transaction_a, rai::account const & account_a,rai::uint256_union const & token_name_a)
+{
+	rai::uint128_t result (0);
+	rai::account_info info;
+	auto none (store.token_account_get (transaction_a, account_a, info));
+	if (!none) //这个里加逻辑去tokenname的balance--fixme
+	{
+		result = info.token_balance.number ();
+	}
+	return result;
+}
+
+
 rai::uint128_t rai::ledger::account_pending (MDB_txn * transaction_a, rai::account const & account_a)
 {
 	rai::uint128_t result (0);
